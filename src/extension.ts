@@ -128,6 +128,7 @@ export function activate(context: ExtensionContext): VSCAny {
 
         const trk = previewGenerator.getTrackObject(activeEditor.document);
         trk?.outputDoc?.show();
+        window.showTextDocument(activeEditor.document, activeEditor.viewColumn);
       }
     })
   );
