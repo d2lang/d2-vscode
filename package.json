@@ -113,6 +113,12 @@
         "category": "d2"
       },
       {
+        "command": "D2.FormatD2Block",
+        "title": "Format D2 Block",
+        "category": "d2",
+        "enablement": "editorLangId == markdown && !editorReadonly"
+      },
+      {
         "command": "D2.PickTheme",
         "title": "Pick Preview Theme",
         "category": "d2"
@@ -226,6 +232,11 @@
           "group": "d2"
         },
         {
+          "command": "D2.FormatD2Block",
+          "when": "editorLangId == markdown && !editorReadonly",
+          "group": "d2"
+        },
+        {
           "command": "D2.PickTheme",
           "when": "resourceLangId == d2",
           "group": "d2"
@@ -250,6 +261,11 @@
         {
           "command": "D2.CompileToSvg",
           "when": "resourceLangId == d2",
+          "group": "d2"
+        },
+        {
+          "command": "D2.FormatD2Block",
+          "when": "editorLangId == markdown && !editorReadonly",
           "group": "d2"
         }
       ],
@@ -308,6 +324,7 @@
     "compile": "webpack",
     "watch": "webpack --watch --devtool source-map",
     "package": "webpack --mode production --devtool hidden-source-map",
+    "test": "tsc -p src --outDir node_modules/.cache/d2-test && node --test test/markdownBlock.test.cjs",
     "dev": "code --uninstall-extension terrastruct.d2; yarn gen && yarn pkg && code --install-extension d2.vsix",
     "gen": "yq -o=json . syntaxes/d2.tmLanguage.yaml > syntaxes/d2.tmLanguage.json",
     "pkg": "vsce package --out d2.vsix"
@@ -317,6 +334,7 @@
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.17.0",
     "@types/glob": "^8.0.0",
+    "@types/markdown-it": "^14.1.2",
     "@types/markdown-it-container": "^2.0.10",
     "@types/mocha": "^10.0.0",
     "@types/node": "^20.17.6",
@@ -344,6 +362,7 @@
   "dependencies": {
     "async-mutex": "^0.5.0",
     "child_process": "^1.0.2",
+    "markdown-it": "^14.3.3",
     "markdown-it-container": "^4.0.0"
   },
   "homepage": "https://d2lang.com",
