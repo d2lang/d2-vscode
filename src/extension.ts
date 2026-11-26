@@ -10,7 +10,6 @@ import {
   TextDocumentChangeEvent,
   TextDocumentSaveReason,
   TextDocumentWillSaveEvent,
-  TextEdit,
   Uri,
   window,
   workspace,
@@ -27,6 +26,7 @@ import { d2Tasks } from "./tasks";
 import { util } from "./utility";
 import * as path from "path";
 import { TextEncoder } from "util";
+import { formatD2Block, formatD2Document } from "./format";
 
 export const d2Ext = "d2";
 export const d2Lang = "d2";
@@ -163,21 +163,11 @@ export function activate(context: ExtensionContext): VSCAny {
     })
   );
 
-  languages.registerDocumentFormattingEditProvider(
-    { language: d2Lang, scheme: "file" },
-    {
-      provideDocumentFormattingEdits(document: TextDocument): TextEdit[] {
-        const documentEditor = window.visibleTextEditors.find(
-          (editor) => editor.document === document
-        );
-
-        if (documentEditor) {
-          d2Tasks.format(documentEditor);
-        }
-
-        return [];
-      },
-    }
+  context.subscriptions.push(
+    languages.registerDocumentFormattingEditProvider(d2Lang, {
+      provideDocumentFormattingEdits: formatD2Document,
+    }),
+    commands.registerCommand("D2.FormatD2Block", formatD2Block)
   );
 
   context.subscriptions.push(

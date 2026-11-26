@@ -21,6 +21,7 @@ for instructions._
 - Syntax highlighting `.d2` files
 - Open preview window on the side (right-click or (ctrl+shift+d) (mac -> shift+cmd+d))
 - Format Document for `.d2` files
+- Format a fenced `d2` block in Markdown. Place the cursor inside the block or select it, then run **d2: Format D2 Block** from the Command Palette or **Format D2 Block** from the editor context menu.
 - View rendered D2 code snippets in markdown document preview
 - Theme and Layout are configurable from settings and the Command Palette
 
