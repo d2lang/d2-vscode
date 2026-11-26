@@ -4,6 +4,7 @@
 
 import {
   commands,
+  Disposable,
   ExtensionContext,
   languages,
   TextDocument,
@@ -27,6 +28,7 @@ import { util } from "./utility";
 import * as path from "path";
 import { TextEncoder } from "util";
 import { formatD2Block, formatD2Document } from "./format";
+import { D2LanguageServer } from "./languageServer";
 
 export const d2Ext = "d2";
 export const d2Lang = "d2";
@@ -37,6 +39,7 @@ export let ws: WorkspaceConfiguration = workspace.getConfiguration(d2ConfigSecti
 export const outputChannel: D2OutputChannel = new D2OutputChannel();
 export const taskRunner: TaskRunner = new TaskRunner();
 export let extContext: ExtensionContext;
+let languageServer: D2LanguageServer | undefined;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type VSCAny = any;
@@ -44,10 +47,35 @@ export type VSCAny = any;
 export function activate(context: ExtensionContext): VSCAny {
   extContext = context;
 
+  let cliFormatter: Disposable | undefined;
+  function setNativeFormatting(active: boolean): void {
+    if (active) {
+      cliFormatter?.dispose();
+      cliFormatter = undefined;
+    } else if (languageServer && !cliFormatter) {
+      cliFormatter = languages.registerDocumentFormattingEditProvider(d2Lang, {
+        provideDocumentFormattingEdits: formatD2Document,
+      });
+    }
+  }
+  languageServer = new D2LanguageServer(outputChannel.outputChannel, setNativeFormatting);
+  setNativeFormatting(false);
+  context.subscriptions.push(new Disposable(() => cliFormatter?.dispose()));
+
+  function startLanguageServer(): void {
+    languageServer?.start(ws.get("execPath", "d2"));
+  }
+
   context.subscriptions.push(
-    workspace.onDidChangeConfiguration(() => {
+    workspace.onDidChangeConfiguration((event) => {
       const wsOld = ws;
       ws = workspace.getConfiguration(d2ConfigSection);
+      if (
+        event.affectsConfiguration("D2.execPath") &&
+        workspace.textDocuments.some((doc) => doc.languageId === d2Lang)
+      ) {
+        startLanguageServer();
+      }
 
       if (
         ws.get("previewLayout") !== wsOld.get("previewLayout") ||
@@ -107,6 +135,7 @@ export function activate(context: ExtensionContext): VSCAny {
     workspace.onDidOpenTextDocument((doc: TextDocument) => {
       if (doc.languageId === d2Ext) {
         previewGenerator.createObjectToTrack(doc);
+        startLanguageServer();
       }
     })
   );
@@ -163,12 +192,7 @@ export function activate(context: ExtensionContext): VSCAny {
     })
   );
 
-  context.subscriptions.push(
-    languages.registerDocumentFormattingEditProvider(d2Lang, {
-      provideDocumentFormattingEdits: formatD2Document,
-    }),
-    commands.registerCommand("D2.FormatD2Block", formatD2Block)
-  );
+  context.subscriptions.push(commands.registerCommand("D2.FormatD2Block", formatD2Block));
 
   context.subscriptions.push(
     commands.registerCommand("D2.PickLayout", () => {
@@ -217,6 +241,7 @@ export function activate(context: ExtensionContext): VSCAny {
   workspace.textDocuments.forEach((td: TextDocument) => {
     if (td.languageId === d2Ext) {
       previewGenerator.createObjectToTrack(td);
+      startLanguageServer();
     }
   });
 
@@ -236,6 +261,12 @@ export function activate(context: ExtensionContext): VSCAny {
       return md;
     },
   };
+}
+
+export function deactivate(): Promise<void> | undefined {
+  const server = languageServer;
+  languageServer = undefined;
+  return server?.stop();
 }
 
 const pluginKeyword = "d2";

@@ -1,0 +1,4 @@
+# Webpack includes the language client and protocol libraries in dist/extension.js.
+node_modules/vscode-{languageclient,jsonrpc,languageserver-protocol,languageserver-types}/**
+!node_modules/vscode-*/License.txt
+!node_modules/vscode-*/thirdpartynotices.txt

@@ -23,6 +23,40 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+  language-server:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+      - run: yarn install --frozen-lockfile
+      - run: yarn test
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: d2lang/d2
+          ref: 032ef6b7e2ca3eb08ab7cfe1da56c3d9354ddb15 # First commit on master with d2 lsp
+          path: native-d2
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: native-d2/go.mod
+          cache-dependency-path: native-d2/go.sum
+      - name: Build the native language server
+        working-directory: native-d2
+        run: go build -o "$RUNNER_TEMP/d2-native" .
+      - name: Extract the legacy D2 executable
+        working-directory: ${{ runner.temp }}
+        run: |
+          curl -fsSL --retry 3 -o legacy.tar.gz https://github.com/d2lang/d2/releases/download/v0.9.0/d2-v0.9.0-linux-amd64.tar.gz
+          echo '5669ddc46b99e942cc96078f4a4e36d5e62103348f4c05179ede27802fdd87a9  legacy.tar.gz' | sha256sum -c
+          tar -xzf legacy.tar.gz -O d2-v0.9.0/bin/d2 > d2-legacy
+          chmod +x d2-legacy
+      - name: Run VS Code integration tests
+        run: xvfb-run -a yarn test:integration
+        env:
+          D2_LSP_BIN: ${{ runner.temp }}/d2-native
+          D2_LEGACY_BIN: ${{ runner.temp }}/d2-legacy
   nofixups:
     runs-on: ubuntu-latest
     steps:
