@@ -368,7 +368,7 @@
     "markdown-it-container": "^4.0.0",
     "vscode-languageclient": "^8.1.0"
   },
-  "homepage": "https://d2lang.com/tour/vscode",
+  "homepage": "https://github.com/d2lang/d2-vscode",
   "icon": "d2-icon.png",
   "bugs": {
     "url": "https://github.com/d2lang/d2-vscode/issues"
