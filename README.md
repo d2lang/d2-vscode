@@ -49,7 +49,8 @@ their imports.
 
 Language features require a D2 build with the `lsp` command. With older
 versions, including v0.9.0, **Format Document** continues to use `d2 fmt`.
-Preview and Markdown block formatting also work with older versions.
+The extension also uses `d2 fmt` for documents above the server's 2 MiB limit.
+Preview and Markdown block formatting work with older versions.
 
 ## Example
 

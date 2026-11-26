@@ -1,6 +1,7 @@
 import { execFile, spawn } from "child_process";
 import { promisify } from "util";
 import { OutputChannel } from "vscode";
+import { formatD2Document } from "./format";
 import {
   CloseAction,
   ErrorAction,
@@ -18,6 +19,12 @@ type SetNativeFormatting = (active: boolean) => void;
 // Client 8 calls stop() after an initialize error, including when there is no
 // running connection to shut down. The owner reaps the process in that case.
 class D2Client extends LanguageClient {
+  override error(message: string, data?: unknown, notify?: boolean | "force"): void {
+    // Client 8 forces a generic error popup after a failed or canceled start.
+    // Startup failures are already logged in D2-Output; the CLI formatter stays available.
+    super.error(message, data, this.state === State.Stopped ? false : notify);
+  }
+
   override stop(timeout?: number): Promise<void> {
     return this.state === State.Starting ? Promise.resolve() : super.stop(timeout);
   }
@@ -127,11 +134,21 @@ export class D2LanguageServer {
           async provideDocumentFormattingEdits(document, options, token, provideEdits) {
             const version = document.version;
             const edits = await provideEdits(document, options, token);
-            return token.isCancellationRequested ||
+            if (
+              token.isCancellationRequested ||
               document.isClosed ||
               document.version !== version
-              ? []
-              : edits;
+            ) {
+              return [];
+            }
+            // d2 lsp returns null above 2 MiB, which the client converts to undefined.
+            if (
+              edits === undefined &&
+              Buffer.byteLength(document.getText(), "utf8") > 2 * 1024 * 1024
+            ) {
+              return formatD2Document(document, options, token);
+            }
+            return edits;
           },
         },
         initializationFailedHandler: () => false,

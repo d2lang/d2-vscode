@@ -30,9 +30,9 @@ async function replaceBuffer(document, source) {
   assert(await workspace.applyEdit(edit));
 }
 
-async function checkFormat(document) {
+async function checkFormat(document, prefix = "") {
   const newline = document.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n";
-  await replaceBuffer(document, "api->db\n");
+  await replaceBuffer(document, prefix + "api->db\n");
   const edits = await commands.executeCommand(
     "vscode.executeFormatDocumentProvider",
     document.uri,
@@ -45,7 +45,7 @@ async function checkFormat(document) {
   const change = new WorkspaceEdit();
   change.set(document.uri, edits);
   assert(await workspace.applyEdit(change));
-  assert.equal(document.getText(), "api -> db" + newline);
+  assert(document.getText() === prefix + "api -> db" + newline, "Incorrect formatted text");
 }
 
 exports.run = async () => {
@@ -130,6 +130,9 @@ exports.run = async () => {
   await eventually("cleared D2 diagnostics", () => d2Errors().length === 0);
   const windowsFile = await openFile("windows.d2", "x\r\n");
   await checkFormat(windowsFile);
+  // The native server declines formatting above 2 MiB of UTF-8 text.
+  const large = await openFile("large.d2", "");
+  await checkFormat(large, "# " + "é".repeat(1024 * 1024) + "\n");
 
   // A single window exercises provider teardown, CLI fallback, and attaching already-open buffers again.
   const config = workspace.getConfiguration("D2");
