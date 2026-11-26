@@ -2,6 +2,7 @@
  * d2 File Viewer Extension
  **/
 
+import * as vscode from "vscode";
 import {
   commands,
   Disposable,
@@ -29,6 +30,7 @@ import * as path from "path";
 import { TextEncoder } from "util";
 import { formatD2Block, formatD2Document } from "./format";
 import { D2LanguageServer } from "./languageServer";
+import { registerD2Mcp } from "./mcpServer";
 
 export const d2Ext = "d2";
 export const d2Lang = "d2";
@@ -46,6 +48,7 @@ export type VSCAny = any;
 
 export function activate(context: ExtensionContext): VSCAny {
   extContext = context;
+  registerD2Mcp(vscode, context);
 
   let cliFormatter: Disposable | undefined;
   function setNativeFormatting(active: boolean): void {

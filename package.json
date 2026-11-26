@@ -31,6 +31,12 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "d2.mcp",
+        "label": "D2"
+      }
+    ],
     "taskDefinitions": [
       {
         "type": "D2"
@@ -325,7 +331,7 @@
     "compile": "webpack",
     "watch": "webpack --watch --devtool source-map",
     "package": "webpack --mode production --devtool hidden-source-map",
-    "test": "tsc -p src --outDir node_modules/.cache/d2-test && node --test test/markdownBlock.test.cjs",
+    "test": "tsc -p src --outDir node_modules/.cache/d2-test && node --test test/markdownBlock.test.cjs test/mcpServer.test.cjs",
     "test:integration": "yarn compile && node test/runIntegration.cjs",
     "dev": "code --uninstall-extension d2lang.d2lang; yarn gen && yarn pkg && code --install-extension d2.vsix",
     "gen": "yq -o=json . syntaxes/d2.tmLanguage.yaml > syntaxes/d2.tmLanguage.json",

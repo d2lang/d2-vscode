@@ -54,6 +54,17 @@ versions, including v0.9.0, **Format Document** continues to use `d2 fmt`.
 The extension also uses `d2 fmt` for documents above the server's 2 MiB limit.
 Preview and Markdown block formatting work with older versions.
 
+## AI diagrams with MCP
+
+In a trusted workspace, VS Code 1.101 and later can discover the D2 Model
+Context Protocol (MCP) server when the executable selected by `D2.execPath`
+supports `d2 mcp`. Open **MCP: List Servers** in the Command Palette to find
+**D2**, then ask your agent to “Use D2 to draw a diagram of an API sending
+jobs to a queue.” The server can check the source and return a rendered diagram.
+
+If you upgrade D2 at the same path, reload the window to discover the server.
+See the [D2 MCP guide](https://d2lang.com/tour/mcp/) for a worked example.
+
 ## Example
 
 <div align="center">
