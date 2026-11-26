@@ -399,9 +399,9 @@
     undici-types "~6.19.2"
 
 "@types/vscode@^1.73.0":
-  version "1.96.0"
-  resolved "https://registry.npmjs.org/@types/vscode/-/vscode-1.96.0.tgz"
-  integrity sha512-qvZbSZo+K4ZYmmDuaodMbAa67Pl6VDQzLKFka6rq+3WUTY4Kro7Bwoi0CuZLO/wema0ygcmpwow7zZfPJTs5jg==
+  version "1.101.0"
+  resolved "https://registry.npmjs.org/@types/vscode/-/vscode-1.101.0.tgz#0622ca26ea15aafbe570dc4d25917c75cafe578a"
+  integrity sha512-ZWf0IWa+NGegdW3iU42AcDTFHWW7fApLdkdnBqwYEtHVIBGbTu0ZNQKP/kX3Ds/uMJXIMQNAojHR4vexCEEz5Q==
 
 "@types/yargs-parser@*":
   version "21.0.3"
