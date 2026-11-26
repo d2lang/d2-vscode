@@ -21,6 +21,8 @@ for instructions._
 - Syntax highlighting `.d2` files
 - Open preview window on the side (right-click or (ctrl+shift+d) (mac -> shift+cmd+d))
 - Format Document for `.d2` files
+- Autocomplete, hover, live diagnostics, outline, folding, color pickers, and links with the D2 language server
+- Go to Definition, Find All References, and Rename Symbol across D2 imports
 - Format a fenced `d2` block in Markdown. Place the cursor inside the block or select it, then run **d2: Format D2 Block** from the Command Palette or **Format D2 Block** from the editor context menu.
 - View rendered D2 code snippets in markdown document preview
 - Theme and Layout are configurable from settings and the Command Palette
@@ -34,6 +36,20 @@ y: |`md
   VSCode extension for [D2](https://d2lang.com) files.
 `|
 ```
+
+## Language server
+
+Open a D2 file to start the language server. The extension runs `d2 lsp` using
+the D2 executable on your `PATH`. To use a different build, set `D2.execPath`
+to its executable path. Changing that setting restarts the server.
+
+For cross-file rename, open the diagrams that import the shape before running
+**Rename Symbol**. The server reads unsaved edits in those diagrams and follows
+their imports.
+
+Language features require a D2 build with the `lsp` command. With older
+versions, including v0.9.0, **Format Document** continues to use `d2 fmt`.
+Preview and Markdown block formatting also work with older versions.
 
 ## Example
 
@@ -67,6 +83,11 @@ osascript -e 'quit app "Visual Studio Code"'; yarn dev && code ~/d2-testing
 ### CI
 
 CI relies on D2's shared [CI submodule](https://github.com/d2lang/ci).
+
+To run the VS Code integration tests, set `D2_LSP_BIN` to a D2 executable with
+the `lsp` command and `D2_LEGACY_BIN` to an older D2 executable, then run
+`yarn test:integration`. Set `VSCODE_EXECUTABLE_PATH` to test an existing VS Code
+installation.
 
 To run all CI: `./make.sh`.
 

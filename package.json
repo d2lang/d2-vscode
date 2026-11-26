@@ -26,6 +26,7 @@
     "mindmap"
   ],
   "activationEvents": [
+    "onLanguage:d2",
     "onStartupFinished"
   ],
   "main": "./dist/extension.js",
@@ -325,6 +326,7 @@
     "watch": "webpack --watch --devtool source-map",
     "package": "webpack --mode production --devtool hidden-source-map",
     "test": "tsc -p src --outDir node_modules/.cache/d2-test && node --test test/markdownBlock.test.cjs",
+    "test:integration": "yarn compile && node test/runIntegration.cjs",
     "dev": "code --uninstall-extension terrastruct.d2; yarn gen && yarn pkg && code --install-extension d2.vsix",
     "gen": "yq -o=json . syntaxes/d2.tmLanguage.yaml > syntaxes/d2.tmLanguage.json",
     "pkg": "vsce package --out d2.vsix"
@@ -363,7 +365,8 @@
     "async-mutex": "^0.5.0",
     "child_process": "^1.0.2",
     "markdown-it": "^14.3.3",
-    "markdown-it-container": "^4.0.0"
+    "markdown-it-container": "^4.0.0",
+    "vscode-languageclient": "^8.1.0"
   },
   "homepage": "https://d2lang.com",
   "icon": "d2-icon.png",

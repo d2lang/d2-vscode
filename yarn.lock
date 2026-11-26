@@ -2458,6 +2458,13 @@ minimatch@^5.0.1, minimatch@^5.1.6:
   dependencies:
     brace-expansion "^2.0.1"
 
+minimatch@^5.1.0:
+  version "5.1.9"
+  resolved "https://registry.npmjs.org/minimatch/-/minimatch-5.1.9.tgz#1293ef15db0098b394540e8f9f744f9fda8dee4b"
+  integrity sha512-7o1wEA2RyMP7Iu7GNba9vc0RWWGACJOCZBJX2GJWip0ikV+wcOsgVuY9uE8CPiyQhkGFSlhuSkZPavN7u1c2Fw==
+  dependencies:
+    brace-expansion "^2.0.1"
+
 minimatch@^9.0.4:
   version "9.0.5"
   resolved "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz"
@@ -2984,6 +2991,11 @@ semver@^7.3.4, semver@^7.3.5, semver@^7.5.2, semver@^7.5.4, semver@^7.6.0, semve
   resolved "https://registry.npmjs.org/semver/-/semver-7.6.3.tgz"
   integrity sha512-oVekP1cKtI+CTDvHWYFUcMtsK/00wmAEfyqKfNdARm8u1wNVhSgaX7A8d4UuIlUI5e84iEwOhs7ZPYRmzU9U6A==
 
+semver@^7.3.7:
+  version "7.8.6"
+  resolved "https://registry.npmjs.org/semver/-/semver-7.8.6.tgz#67c0cda133a3ceb6f70b803e67625bf969000424"
+  integrity sha512-9lpSSU4Mly3mrtruwLs1eLK6+gzbzqeBFwRNjIjE+9LuDpWdYctrQlQ3ej1Ilgi7gknpsTRnPoLP8DpCHqHIJw==
+
 serialize-javascript@^6.0.2:
   version "6.0.2"
   resolved "https://registry.npmjs.org/serialize-javascript/-/serialize-javascript-6.0.2.tgz"
@@ -3414,6 +3426,33 @@ uuid@^8.3.0:
   version "8.3.2"
   resolved "https://registry.npmjs.org/uuid/-/uuid-8.3.2.tgz"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
+
+vscode-jsonrpc@8.1.0:
+  version "8.1.0"
+  resolved "https://registry.npmjs.org/vscode-jsonrpc/-/vscode-jsonrpc-8.1.0.tgz#cb9989c65e219e18533cc38e767611272d274c94"
+  integrity sha512-6TDy/abTQk+zDGYazgbIPc+4JoXdwC8NHU9Pbn4UJP1fehUyZmM4RHp5IthX7A6L5KS30PRui+j+tbbMMMafdw==
+
+vscode-languageclient@^8.1.0:
+  version "8.1.0"
+  resolved "https://registry.npmjs.org/vscode-languageclient/-/vscode-languageclient-8.1.0.tgz#3e67d5d841481ac66ddbdaa55b4118742f6a9f3f"
+  integrity sha512-GL4QdbYUF/XxQlAsvYWZRV3V34kOkpRlvV60/72ghHfsYFnS/v2MANZ9P6sHmxFcZKOse8O+L9G7Czg0NUWing==
+  dependencies:
+    minimatch "^5.1.0"
+    semver "^7.3.7"
+    vscode-languageserver-protocol "3.17.3"
+
+vscode-languageserver-protocol@3.17.3:
+  version "3.17.3"
+  resolved "https://registry.npmjs.org/vscode-languageserver-protocol/-/vscode-languageserver-protocol-3.17.3.tgz#6d0d54da093f0c0ee3060b81612cce0f11060d57"
+  integrity sha512-924/h0AqsMtA5yK22GgMtCYiMdCOtWTSGgUOkgEDX+wk2b0x4sAfLiO4NxBxqbiVtz7K7/1/RgVrVI0NClZwqA==
+  dependencies:
+    vscode-jsonrpc "8.1.0"
+    vscode-languageserver-types "3.17.3"
+
+vscode-languageserver-types@3.17.3:
+  version "3.17.3"
+  resolved "https://registry.npmjs.org/vscode-languageserver-types/-/vscode-languageserver-types-3.17.3.tgz#72d05e47b73be93acb84d6e311b5786390f13f64"
+  integrity sha512-SYU4z1dL0PyIMd4Vj8YOqFvHu7Hz/enbWtpfnVbJHU4Nd1YNYx8u0ennumc6h48GQNeOLxmwySmnADouT/AuZA==
 
 watchpack@^2.4.1:
   version "2.4.2"
