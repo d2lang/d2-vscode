@@ -1,9 +1,9 @@
 {
-  "name": "d2",
-  "displayName": "D2",
-  "publisher": "Terrastruct",
+  "name": "d2-language-support",
+  "displayName": "D2 Language Support",
+  "publisher": "d2lang",
   "description": "Support for .d2 files.",
-  "version": "0.8.8",
+  "version": "0.8.9",
   "license": "BSD-3-Clause",
   "contributors": [
     "Barry Nolte <barry@barrynolte.com>"
@@ -327,7 +327,7 @@
     "package": "webpack --mode production --devtool hidden-source-map",
     "test": "tsc -p src --outDir node_modules/.cache/d2-test && node --test test/markdownBlock.test.cjs",
     "test:integration": "yarn compile && node test/runIntegration.cjs",
-    "dev": "code --uninstall-extension terrastruct.d2; yarn gen && yarn pkg && code --install-extension d2.vsix",
+    "dev": "code --uninstall-extension d2lang.d2-language-support; yarn gen && yarn pkg && code --install-extension d2.vsix",
     "gen": "yq -o=json . syntaxes/d2.tmLanguage.yaml > syntaxes/d2.tmLanguage.json",
     "pkg": "vsce package --out d2.vsix"
   },
@@ -371,8 +371,7 @@
   "homepage": "https://d2lang.com",
   "icon": "d2-icon.png",
   "bugs": {
-    "url": "https://github.com/d2lang/d2-vscode/issues",
-    "email": "info@terrastruct.com"
+    "url": "https://github.com/d2lang/d2-vscode/issues"
   },
   "repository": {
     "type": "git",

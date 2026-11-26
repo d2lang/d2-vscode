@@ -60,7 +60,13 @@ Preview and Markdown block formatting work with older versions.
 
 ## Install
 
-You can install using the extension sidebar or by going to the [Visual Studio Marketplace Website](https://marketplace.visualstudio.com/items?itemName=terrastruct.d2) and clicking "Install".
+Install **D2 Language Support** from the Extensions sidebar or the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=d2lang.d2-language-support).
+
+If you use the earlier `terrastruct.d2` extension, disable or uninstall it before
+installing this one. The two extensions register the same D2 commands.
+If your user or workspace settings specify `terrastruct.d2` as the default
+formatter under `[d2]`, change `editor.defaultFormatter` to
+`d2lang.d2-language-support`.
 
 ## Contributing
 
@@ -112,7 +118,7 @@ vsce package
 ```
 
 Upload the output `.vsix` onto
-[https://marketplace.visualstudio.com/manage/publishers/terrastruct](https://marketplace.visualstudio.com/manage/publishers/terrastruct).
+[the D2lang publisher dashboard](https://marketplace.visualstudio.com/manage/publishers/d2lang).
 
 ### launch.json
 
@@ -153,7 +159,7 @@ npm run pkg
 # To install:
 # code --install-extension d2.vsix
 # To uninstall:
-# code --uninstall-extension terrastruct.d2
+# code --uninstall-extension d2lang.d2-language-support
 ```
 
 ### markdown.tmLanguage.json
