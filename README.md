@@ -10,7 +10,9 @@
 [![daily](https://github.com/d2lang/d2-vscode/actions/workflows/daily.yml/badge.svg)](https://github.com/d2lang/d2-vscode/actions/workflows/daily.yml)
 [![license](https://img.shields.io/github/license/d2lang/d2-vscode?color=9cf)](./LICENSE.txt)
 
-# VSCode extension for [D2](https://d2lang.com) files.
+# d2lang
+
+The official [D2](https://d2lang.com) extension for Visual Studio Code.
 
 _Note: Requires D2 to be installed on your machine. See
 [https://github.com/d2lang/d2/tree/master#install](https://github.com/d2lang/d2/tree/master#install)

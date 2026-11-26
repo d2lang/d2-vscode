@@ -2,7 +2,7 @@
   "name": "d2lang",
   "displayName": "d2lang",
   "publisher": "d2lang",
-  "description": "Support for .d2 files.",
+  "description": "The official D2 extension for Visual Studio Code. Preview diagrams, format D2 files, and navigate definitions with the D2 language server.",
   "version": "0.8.9",
   "license": "BSD-3-Clause",
   "contributors": [
@@ -368,7 +368,7 @@
     "markdown-it-container": "^4.0.0",
     "vscode-languageclient": "^8.1.0"
   },
-  "homepage": "https://d2lang.com",
+  "homepage": "https://d2lang.com/tour/vscode",
   "icon": "d2-icon.png",
   "bugs": {
     "url": "https://github.com/d2lang/d2-vscode/issues"
