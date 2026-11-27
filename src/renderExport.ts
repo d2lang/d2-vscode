@@ -26,8 +26,8 @@ export async function renderExport(
   const config = workspace.getConfiguration("D2", document.uri);
   const options = previewOptions(document.uri);
   const cwd = document.isUntitled
-    ? (workspace.getWorkspaceFolder(document.uri)?.uri.fsPath ??
-      workspace.workspaceFolders?.[0]?.uri.fsPath)
+    ? workspace.getWorkspaceFolder(document.uri)?.uri.fsPath ??
+      workspace.workspaceFolders?.[0]?.uri.fsPath
     : path.dirname(document.uri.fsPath);
   const source = document.getText();
   const dir = await mkdtemp(path.join(tmpdir(), "d2-export-"));

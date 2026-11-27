@@ -48,10 +48,12 @@ export type VSCAny = any;
 export function activate(context: ExtensionContext): VSCAny {
   extContext = context;
   registerD2Mcp(vscode, context);
-  context.subscriptions.push(new Disposable(() => {
-    disposeMarkdownRenderer();
-    void disposeCompiler();
-  }));
+  context.subscriptions.push(
+    new Disposable(() => {
+      disposeMarkdownRenderer();
+      disposeCompiler().catch((error) => outputChannel.appendError(String(error)));
+    })
+  );
 
   let sdkFormatter: Disposable | undefined;
   function setNativeFormatting(active: boolean): void {

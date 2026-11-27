@@ -22,7 +22,7 @@ type SetNativeFormatting = (active: boolean) => void;
 class D2Client extends LanguageClient {
   override error(message: string, data?: unknown, notify?: boolean | "force"): void {
     // Client 8 forces a generic error popup after a failed or canceled start.
-    // Startup failures are already logged in D2-Output; the CLI formatter stays available.
+    // Startup failures are already logged in D2-Output; D2.js formatting stays available.
     super.error(message, data, this.state === State.Stopped ? false : notify);
   }
 
@@ -44,6 +44,7 @@ class D2Client extends LanguageClient {
 
 export class D2LanguageServer {
   private readonly output: OutputChannel;
+  private readonly extensionPath: string;
   private readonly setNativeFormatting: SetNativeFormatting;
   private executable?: string;
   private pending = Promise.resolve();
@@ -54,8 +55,9 @@ export class D2LanguageServer {
   constructor(
     output: OutputChannel,
     setNativeFormatting: SetNativeFormatting,
-    private readonly extensionPath: string
+    extensionPath: string
   ) {
+    this.extensionPath = extensionPath;
     this.output = output;
     this.setNativeFormatting = setNativeFormatting;
   }
@@ -113,7 +115,9 @@ export class D2LanguageServer {
         signal,
         killSignal: "SIGKILL",
       });
-      if (signal.aborted) return;
+      if (signal.aborted) {
+        return;
+      }
       if (!/^\s*\S.* lsp(?: \[--stdio\])?[ \t]*$/m.test(stdout)) {
         this.output.appendLine(`${executable} has no lsp command. Using the formatter.`);
         return;

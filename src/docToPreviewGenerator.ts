@@ -144,7 +144,10 @@ export class DocToPreviewGenerator {
 
         let list = "";
         arr.forEach((s) => {
-          list += `<li>${s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</li>`;
+          list += `<li>${s
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")}</li>`;
         });
 
         trkObj.outputDoc?.setToastMsg("Errors");
