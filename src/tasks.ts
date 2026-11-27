@@ -22,15 +22,23 @@ class D2Tasks {
 
     terminal?.(`${VT.Green}Starting Compile...${VT.Reset}`);
     terminal?.(
-      `Layout: ${VT.Yellow}${layout}${VT.Reset}  Theme: ${VT.Yellow}${theme}${VT.Reset}  Sketch: ${VT.Yellow}${sketch ?? "diagram"}${VT.Reset}`
+      `Layout: ${VT.Yellow}${layout}${VT.Reset}  Theme: ${VT.Yellow}${theme}${
+        VT.Reset
+      }  Sketch: ${VT.Yellow}${sketch ?? "diagram"}${VT.Reset}`
     );
     terminal?.(`Current Working Directory: ${VT.Yellow}${filePath}${VT.Reset}`);
     terminal?.("");
 
     const args: string[] = [];
-    if (layout !== "diagram") args.push(`--layout=${layout}`);
-    if (theme !== "diagram") args.push(`--theme=${NameToThemeNumber(theme)}`);
-    if (sketch !== null) args.push(`--sketch=${sketch}`);
+    if (layout !== "diagram") {
+      args.push(`--layout=${layout}`);
+    }
+    if (theme !== "diagram") {
+      args.push(`--theme=${NameToThemeNumber(theme)}`);
+    }
+    if (sketch !== null) {
+      args.push(`--sketch=${sketch}`);
+    }
     args.push("-");
 
     // spawnSync doesn't like blank working directories
