@@ -120,6 +120,11 @@
         "category": "d2"
       },
       {
+        "command": "D2.ExportDiagram",
+        "title": "Export Diagram As...",
+        "category": "d2"
+      },
+      {
         "command": "D2.FormatD2Block",
         "title": "Format D2 Block",
         "category": "d2",
@@ -242,6 +247,11 @@
           "group": "d2"
         },
         {
+          "command": "D2.ExportDiagram",
+          "when": "resourceLangId == d2",
+          "group": "d2"
+        },
+        {
           "command": "D2.FormatD2Block",
           "when": "editorLangId == markdown && !editorReadonly",
           "group": "d2"
@@ -274,6 +284,11 @@
           "group": "d2"
         },
         {
+          "command": "D2.ExportDiagram",
+          "when": "resourceLangId == d2",
+          "group": "d2"
+        },
+        {
           "command": "D2.FormatD2Block",
           "when": "editorLangId == markdown && !editorReadonly",
           "group": "d2"
@@ -286,7 +301,7 @@
           "group": "d2"
         },
         {
-          "command": "D2.CompileToSvg",
+          "command": "D2.ExportDiagram",
           "when": "resourceLangId == d2",
           "group": "d2"
         }
@@ -301,6 +316,11 @@
           "command": "D2.CompileToSvg",
           "when": "resourceLangId == d2",
           "group": "d2"
+        },
+        {
+          "command": "D2.ExportDiagram",
+          "when": "resourceLangId == d2",
+          "group": "d2"
         }
       ],
       "explorer/context": [
@@ -311,6 +331,11 @@
         },
         {
           "command": "D2.CompileToSvg",
+          "when": "resourceLangId == d2",
+          "group": "d2"
+        },
+        {
+          "command": "D2.ExportDiagram",
           "when": "resourceLangId == d2",
           "group": "d2"
         }

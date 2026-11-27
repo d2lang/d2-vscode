@@ -39,6 +39,19 @@ y: |`md
 `|
 ```
 
+## Export
+
+Run **d2: Export Diagram As...** from a D2 editor or right-click a D2 file in
+Explorer. Choose SVG, PNG, PDF, PowerPoint, GIF, or text, then pick where to save
+it. The export includes unsaved edits in the source file and resolves imports
+relative to that file. It uses the same layout, theme, and sketch settings as
+the preview. **Compile D2 to SVG** still writes a sibling SVG in one step.
+
+For diagrams with multiple boards, PDF and PowerPoint include a page or slide
+per board. GIF animates the boards. To export an animated SVG, set
+`vars.d2-config.animate-interval` in the diagram. PNG and text export the root
+board. Available formats depend on the installed D2 CLI.
+
 ## Language server
 
 Open a D2 file to start the language server. The extension runs `d2 lsp` using

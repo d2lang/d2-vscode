@@ -4,6 +4,24 @@ import { TaskOutput } from "./taskRunner";
 import { NameToThemeNumber } from "./themePicker";
 import { util, VT } from "./utility";
 
+export function renderFlags(
+  layout: string,
+  theme: string,
+  sketch: boolean | null
+): string[] {
+  const args: string[] = [];
+  if (layout !== "diagram") {
+    args.push(`--layout=${layout}`);
+  }
+  if (theme !== "diagram") {
+    args.push(`--theme=${NameToThemeNumber(theme)}`);
+  }
+  if (sketch !== null) {
+    args.push(`--sketch=${sketch}`);
+  }
+  return args;
+}
+
 /**
  * D2Tasks - static functions to be used in tasks.  Functions need
  * to be synchronous, and return their results in a callback.
@@ -29,17 +47,7 @@ class D2Tasks {
     terminal?.(`Current Working Directory: ${VT.Yellow}${filePath}${VT.Reset}`);
     terminal?.("");
 
-    const args: string[] = [];
-    if (layout !== "diagram") {
-      args.push(`--layout=${layout}`);
-    }
-    if (theme !== "diagram") {
-      args.push(`--theme=${NameToThemeNumber(theme)}`);
-    }
-    if (sketch !== null) {
-      args.push(`--sketch=${sketch}`);
-    }
-    args.push("-");
+    const args = [...renderFlags(layout, theme, sketch), "-"];
 
     // spawnSync doesn't like blank working directories
     if (filePath === "") {
