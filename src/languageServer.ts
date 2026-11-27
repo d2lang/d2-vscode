@@ -1,6 +1,7 @@
 import { execFile, spawn } from "child_process";
 import { promisify } from "util";
 import { OutputChannel } from "vscode";
+import { resolveD2, useBundledD2 } from "./bundledD2";
 import { formatD2Document } from "./format";
 import {
   CloseAction,
@@ -21,7 +22,7 @@ type SetNativeFormatting = (active: boolean) => void;
 class D2Client extends LanguageClient {
   override error(message: string, data?: unknown, notify?: boolean | "force"): void {
     // Client 8 forces a generic error popup after a failed or canceled start.
-    // Startup failures are already logged in D2-Output; the CLI formatter stays available.
+    // Startup failures are already logged in D2-Output; D2.js formatting stays available.
     super.error(message, data, this.state === State.Stopped ? false : notify);
   }
 
@@ -43,6 +44,7 @@ class D2Client extends LanguageClient {
 
 export class D2LanguageServer {
   private readonly output: OutputChannel;
+  private readonly extensionPath: string;
   private readonly setNativeFormatting: SetNativeFormatting;
   private executable?: string;
   private pending = Promise.resolve();
@@ -50,7 +52,12 @@ export class D2LanguageServer {
   private startup?: AbortController;
   private generation = 0;
 
-  constructor(output: OutputChannel, setNativeFormatting: SetNativeFormatting) {
+  constructor(
+    output: OutputChannel,
+    setNativeFormatting: SetNativeFormatting,
+    extensionPath: string
+  ) {
+    this.extensionPath = extensionPath;
     this.output = output;
     this.setNativeFormatting = setNativeFormatting;
   }
@@ -93,27 +100,32 @@ export class D2LanguageServer {
       })
       .catch((error) => {
         if (this.generation === generation) {
-          this.output.appendLine(`D2 language server (${executable}): ${error}`);
+          this.output.appendLine(
+            `D2 language server (${executable || "bundled"}): ${error}`
+          );
         }
       });
   }
 
   private async startClient(executable: string, signal: AbortSignal): Promise<void> {
-    // Old releases also exit successfully on "d2 lsp --help" with the general help.
-    // Check the CLI's advertised commands so locally built binaries work as well.
-    const { stdout } = await exec(executable, ["--help"], {
-      signal,
-      killSignal: "SIGKILL",
-    });
-    if (signal.aborted) {
-      return;
-    }
-    if (!/^\s*\S.* lsp(?: \[--stdio\])?[ \t]*$/m.test(stdout)) {
-      this.output.appendLine(`${executable} has no lsp command. Using d2 fmt.`);
-      return;
+    const runtime = resolveD2(executable, this.extensionPath);
+    if (!useBundledD2(executable)) {
+      // Older custom binaries print general help even for unknown subcommands.
+      const { stdout } = await exec(executable, ["--help"], {
+        signal,
+        killSignal: "SIGKILL",
+      });
+      if (signal.aborted) {
+        return;
+      }
+      if (!/^\s*\S.* lsp(?: \[--stdio\])?[ \t]*$/m.test(stdout)) {
+        this.output.appendLine(`${executable} has no lsp command. Using the formatter.`);
+        return;
+      }
     }
 
-    const child = spawn(executable, ["lsp", "--stdio"], {
+    const child = spawn(runtime.command, [...runtime.args, "lsp", "--stdio"], {
+      env: { ...process.env, ...runtime.env },
       signal,
       killSignal: "SIGKILL",
       windowsHide: true,

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.0
+
+- Preview, format, and export diagrams with just the extension installed. D2.js and all three layout engines are included.
+- The D2 language server, MCP server, and binary exports run from bundled WebAssembly, including offline.
+
 ## 0.9.0
 
 - Use **Export Diagram As...** to save the current diagram as SVG, PNG, PDF, PowerPoint, GIF, or text. Exports include unsaved edits and use the preview's layout, theme, and sketch settings.

@@ -3,7 +3,7 @@
   "displayName": "d2lang",
   "publisher": "d2lang",
   "description": "The official D2 extension for Visual Studio Code. Preview diagrams, format D2 files, and navigate definitions with the D2 language server.",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "license": "BSD-3-Clause",
   "contributors": [
     "Barry Nolte <barry@barrynolte.com>"
@@ -184,6 +184,7 @@
           "description": "Automatically update on saving the D2 file."
         },
         "D2.previewTheme": {
+          "scope": "resource",
           "type": "string",
           "default": "diagram",
           "enum": [
@@ -211,6 +212,7 @@
           "description": "Theme used for preview. Choose diagram to follow the D2 source."
         },
         "D2.previewLayout": {
+          "scope": "resource",
           "type": "string",
           "default": "diagram",
           "enum": [
@@ -223,24 +225,20 @@
             "Use the diagram’s layout setting",
             "The directed graph layout library Dagre",
             "Eclipse Layout Kernel (ELK) with the Layered algorithm",
-            "Terrastruct's AutoLayout Approach"
+            "TALA layout"
           ],
           "description": "Layout used for preview. Choose diagram to follow the D2 source."
         },
         "D2.previewSketch": {
+          "scope": "resource",
           "type": ["boolean", "null"],
           "default": null,
           "description": "Override sketch rendering in the preview. Reset this setting to follow the diagram."
         },
         "D2.execPath": {
           "type": "string",
-          "default": "d2",
-          "description": "Path to d2 executable if not on current PATH"
-        },
-        "D2.checkForInstallAtStart": {
-          "type": "boolean",
-          "default": true,
-          "description": "Check for required D2 command line tools on startup."
+          "default": "",
+          "description": "Optional D2 executable for the language server, MCP, and binary exports. Leave empty to use the bundled tools."
         }
       }
     },
@@ -366,11 +364,12 @@
   },
   "scripts": {
     "vscode:prepublish": "yarn run package",
-    "compile": "webpack",
-    "watch": "webpack --watch --devtool source-map",
-    "package": "webpack --mode production --devtool hidden-source-map",
+    "build:runtime": "node ci/build-runtime.cjs",
+    "compile": "yarn build:runtime && webpack",
+    "watch": "yarn build:runtime && webpack --watch --devtool source-map",
+    "package": "yarn build:runtime && webpack --mode production --devtool hidden-source-map",
     "test": "tsc -p src --outDir node_modules/.cache/d2-test && node --test test/exportDiagram.test.cjs test/markdownBlock.test.cjs test/mcpServer.test.cjs",
-    "test:integration": "yarn compile && node test/runIntegration.cjs",
+    "test:integration": "yarn compile && node --test test/bundledRuntime.test.cjs && node test/runIntegration.cjs",
     "dev": "code --uninstall-extension d2lang.d2lang; yarn gen && yarn pkg && code --install-extension d2.vsix",
     "gen": "yq -o=json . syntaxes/d2.tmLanguage.yaml > syntaxes/d2.tmLanguage.json",
     "pkg": "vsce package --out d2.vsix"
@@ -406,6 +405,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "@d2lang/d2": "0.2.0",
     "async-mutex": "^0.5.0",
     "child_process": "^1.0.2",
     "markdown-it": "^14.3.3",

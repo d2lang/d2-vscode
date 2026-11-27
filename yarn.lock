@@ -108,6 +108,11 @@
     jsonwebtoken "^9.0.0"
     uuid "^8.3.0"
 
+"@d2lang/d2@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@d2lang/d2/-/d2-0.2.0.tgz#1c1eb7391f5a3902d8433273a462abfc5324adb6"
+  integrity sha512-jYPttXCdUxYCwSGLZ7ipBxaLWftjvpfUoXnKM+k7DSDs/2DBG4SpedUE3NTKfWas0ppAqqSEXJyySlpViZ858w==
+
 "@discoveryjs/json-ext@^0.5.0":
   version "0.5.7"
   resolved "https://registry.npmjs.org/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz"

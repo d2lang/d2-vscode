@@ -2,3 +2,6 @@
 node_modules/vscode-{languageclient,jsonrpc,languageserver-protocol,languageserver-types}/**
 !node_modules/vscode-*/License.txt
 !node_modules/vscode-*/thirdpartynotices.txt
+
+# The runtime distribution and its notices are shipped under dist/sdk.
+node_modules/@d2lang/d2/**

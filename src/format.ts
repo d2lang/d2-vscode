@@ -1,4 +1,4 @@
-import { execFile } from "child_process";
+import { getCompiler } from "./sdk";
 import {
   CancellationToken,
   EndOfLine,
@@ -6,35 +6,10 @@ import {
   Range,
   TextDocument,
   TextEdit,
-  Uri,
   window,
-  workspace,
 } from "vscode";
 import { outputChannel } from "./extension";
 import { findD2MarkdownBlock, indentD2MarkdownBlock } from "./markdownBlock";
-
-function formatSource(source: string, uri: Uri): Promise<string> {
-  const executable = workspace.getConfiguration("D2", uri).get("execPath", "d2");
-  return new Promise((resolve, reject) => {
-    const child = execFile(
-      executable,
-      ["fmt", "-"],
-      { encoding: "utf8", maxBuffer: 24 * 1024 * 1024 },
-      (error, stdout, stderr) => {
-        if (error) {
-          reject(new Error(stderr.trim() || error.message));
-          return;
-        }
-        // Older D2 versions write nothing for already formatted input. Empty
-        // output can safely clear a buffer containing only D2 whitespace.
-        resolve(stdout === "" && /[^ \t\r\n]/.test(source) ? source : stdout);
-      }
-    );
-    // A failed subprocess can close stdin before it has read the document.
-    child.stdin?.on("error", () => undefined);
-    child.stdin?.end(source);
-  });
-}
 
 export async function formatD2Document(
   document: TextDocument,
@@ -44,7 +19,7 @@ export async function formatD2Document(
   const version = document.version;
   const source = document.getText();
   try {
-    const formatted = await formatSource(source, document.uri);
+    const formatted = await getCompiler().format(source);
     const eol = document.eol === EndOfLine.CRLF ? "\r\n" : "\n";
     const result = formatted.replace(/\r?\n/g, eol);
     if (
@@ -94,7 +69,7 @@ export async function formatD2Block(): Promise<void> {
   }
 
   try {
-    const formatted = await formatSource(block.source, document.uri);
+    const formatted = await getCompiler().format(block.source);
     if (formatted === block.source || document.isClosed || document.version !== version) {
       return;
     }

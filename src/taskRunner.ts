@@ -9,15 +9,16 @@ import {
   TaskPanelKind,
   TaskRevealKind,
   tasks,
+  TextDocument,
+  workspace,
   TaskScope,
 } from "vscode";
 import { d2TaskName, outputChannel } from "./extension";
-import { d2Tasks } from "./tasks";
+import { previewOptions } from "./tasks";
+import { renderSource } from "./sdk";
 
 // eslint-disable-next-line no-unused-vars
 export type TaskRunnerCallback = (data: string, error: string) => void;
-// eslint-disable-next-line no-unused-vars
-export type TaskOutput = (text: string, flag?: boolean) => void;
 
 /**
  * TaskRunner - This creates CustomTask and Pseudotermial to run it in.
@@ -25,8 +26,8 @@ export type TaskOutput = (text: string, flag?: boolean) => void;
  * when the task is finished.
  */
 export class TaskRunner {
-  public genTask(filename: string, text: string, callback: TaskRunnerCallback): void {
-    const pty = new CustomTaskTerminal(filename, text, callback);
+  public genTask(document: TextDocument, callback: TaskRunnerCallback): void {
+    const pty = new CustomTaskTerminal(document, document.getText(), callback);
     const ce = new CustomExecution(
       (): Promise<CustomTaskTerminal> =>
         new Promise((resolve) => {
@@ -36,7 +37,7 @@ export class TaskRunner {
 
     const task = new Task(
       { type: "D2" },
-      TaskScope.Workspace,
+      workspace.workspaceFolders?.length ? TaskScope.Workspace : TaskScope.Global,
       d2TaskName,
       "D2 Extension",
       ce,
@@ -68,40 +69,48 @@ class CustomTaskTerminal implements Pseudoterminal {
   onDidWrite: Event<string> = this.writeEmitter.event;
   onDidClose?: Event<number> = this.closeEmitter.event;
 
-  private fileName: string;
-  private fileDirectory: string;
-  private docText: string;
-  private callback: TaskRunnerCallback;
-  private compileErrors = "";
+  private readonly document: TextDocument;
+  private readonly source: string;
+  private readonly callback: TaskRunnerCallback;
 
-  constructor(filename: string, text: string, callback: TaskRunnerCallback) {
-    this.fileName = path.parse(filename).base;
-    this.fileDirectory = path.parse(filename).dir;
-    this.docText = text;
+  constructor(document: TextDocument, source: string, callback: TaskRunnerCallback) {
+    this.document = document;
+    this.source = source;
     this.callback = callback;
   }
 
-  open(): void {
-    const data: string = d2Tasks.compile(
-      this.docText,
-      this.fileDirectory,
-      (msg) => {
-        outputChannel.appendInfo(msg);
-      },
-      (err, flag) => {
-        if (flag === true) {
-          this.compileErrors += err + "\n";
-          this.writeLine(`[${path.join(this.fileDirectory, this.fileName)}] ${err}`);
+  async open(): Promise<void> {
+    const { uri } = this.document;
+    const cwd =
+      workspace.getWorkspaceFolder(uri)?.uri.fsPath ??
+      workspace.workspaceFolders?.[0]?.uri.fsPath;
+    const file = this.document.isUntitled
+      ? cwd && path.join(cwd, "untitled.d2")
+      : uri.fsPath;
+    try {
+      const data = await renderSource(
+        this.source,
+        workspace.isTrusted ? file : undefined,
+        previewOptions(uri)
+      );
+      this.callback(data, "");
+      this.closeEmitter.fire(0);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      outputChannel.appendError(message);
+      for (const line of message.split("\n")) {
+        const location = /^(.*):(\d+):(\d+): (.*)$/.exec(line);
+        if (location && file) {
+          const [, name, row, column, detail] = location;
+          const absolute = path.resolve(path.parse(file).root, name);
+          this.writeLine(`[${absolute}] err: ${row}:${column}: ${detail}`);
         } else {
-          this.writeLine(err);
+          this.writeLine(line);
         }
       }
-    );
-
-    this.callback(data, this.compileErrors);
-
-    // This is the magic bullet to complete the task.
-    this.closeEmitter.fire(0);
+      this.callback("", message);
+      this.closeEmitter.fire(1);
+    }
   }
 
   close(): void {

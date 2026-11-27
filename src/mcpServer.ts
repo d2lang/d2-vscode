@@ -1,5 +1,6 @@
 import { ChildProcess, execFile } from "child_process";
 import type * as VSCode from "vscode";
+import { resolveD2, useBundledD2 } from "./bundledD2";
 
 export function registerD2Mcp(
   api: typeof VSCode,
@@ -30,8 +31,14 @@ export function registerD2Mcp(
     if (!workspace.isTrusted) {
       return;
     }
-    const executable = workspace.getConfiguration("D2").get("execPath", "d2");
-    if (typeof executable !== "string" || !executable || executable.includes("\0")) {
+    const executable = workspace.getConfiguration("D2").get("execPath", "");
+    if (typeof executable !== "string" || executable.includes("\0")) {
+      return;
+    }
+    if (useBundledD2(executable)) {
+      const { command, args, env } = resolveD2(executable, context.extensionPath);
+      servers = [new api.McpStdioServerDefinition("D2", command, [...args, "mcp"], env)];
+      changed.fire();
       return;
     }
     const child = execFile(
