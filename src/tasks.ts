@@ -15,25 +15,31 @@ class D2Tasks {
     log?: TaskOutput,
     terminal?: TaskOutput
   ): string {
-    const layout: string = ws.get("previewLayout", "dagre");
-    const theme: string = ws.get("previewTheme", "default");
-    const sketch: boolean = ws.get("previewSketch", false);
-    const themeNumber: number = NameToThemeNumber(theme);
+    const layout = ws.get("previewLayout", "diagram");
+    const theme = ws.get("previewTheme", "diagram");
+    const sketch = ws.get<boolean | null>("previewSketch", null);
     const d2Path: string = ws.get("execPath", "d2");
 
     terminal?.(`${VT.Green}Starting Compile...${VT.Reset}`);
     terminal?.(
-      `Layout: ${VT.Yellow}${layout}${VT.Reset}  Theme: ${VT.Yellow}${theme}${VT.Reset}  Sketch: ${VT.Yellow}${sketch}${VT.Reset}`
+      `Layout: ${VT.Yellow}${layout}${VT.Reset}  Theme: ${VT.Yellow}${theme}${
+        VT.Reset
+      }  Sketch: ${VT.Yellow}${sketch ?? "diagram"}${VT.Reset}`
     );
     terminal?.(`Current Working Directory: ${VT.Yellow}${filePath}${VT.Reset}`);
     terminal?.("");
 
-    const args: string[] = [
-      `--layout=${layout}`,
-      `--theme=${themeNumber}`,
-      `--sketch=${sketch}`,
-      "-",
-    ];
+    const args: string[] = [];
+    if (layout !== "diagram") {
+      args.push(`--layout=${layout}`);
+    }
+    if (theme !== "diagram") {
+      args.push(`--theme=${NameToThemeNumber(theme)}`);
+    }
+    if (sketch !== null) {
+      args.push(`--sketch=${sketch}`);
+    }
+    args.push("-");
 
     // spawnSync doesn't like blank working directories
     if (filePath === "") {

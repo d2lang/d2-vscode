@@ -3,7 +3,7 @@
   "displayName": "d2lang",
   "publisher": "d2lang",
   "description": "The official D2 extension for Visual Studio Code. Preview diagrams, format D2 files, and navigate definitions with the D2 language server.",
-  "version": "0.8.9",
+  "version": "0.8.10",
   "license": "BSD-3-Clause",
   "contributors": [
     "Barry Nolte <barry@barrynolte.com>"
@@ -170,8 +170,9 @@
         },
         "D2.previewTheme": {
           "type": "string",
-          "default": "default",
+          "default": "diagram",
           "enum": [
+            "diagram",
             "default",
             "Neutral gray",
             "Flagship Terrastruct",
@@ -192,27 +193,29 @@
             "Dark Flagship Terrastruct",
             "Dark mauve"
           ],
-          "description": "Theme used for preview."
+          "description": "Theme used for preview. Choose diagram to follow the D2 source."
         },
         "D2.previewLayout": {
           "type": "string",
-          "default": "dagre",
+          "default": "diagram",
           "enum": [
+            "diagram",
             "dagre",
             "elk",
             "tala"
           ],
           "enumDescriptions": [
+            "Use the diagram’s layout setting",
             "The directed graph layout library Dagre",
             "Eclipse Layout Kernel (ELK) with the Layered algorithm",
-            "Terrastruct's AutoLayout Approach - available if installed"
+            "Terrastruct's AutoLayout Approach"
           ],
-          "description": "Layout used for preview."
+          "description": "Layout used for preview. Choose diagram to follow the D2 source."
         },
         "D2.previewSketch": {
-          "type": "boolean",
-          "default": false,
-          "description": "Use sketch rendering in preview."
+          "type": ["boolean", "null"],
+          "default": null,
+          "description": "Override sketch rendering in the preview. Reset this setting to follow the diagram."
         },
         "D2.execPath": {
           "type": "string",
