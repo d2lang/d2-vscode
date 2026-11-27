@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as os from "os";
 import { existsSync } from "fs";
-import { outputChannel, ws } from "./extension";
+import { outputChannel } from "./extension";
 import { window } from "vscode";
 import { spawnSync } from "child_process";
 
@@ -74,75 +74,6 @@ class Utility {
       }
     }
   }
-
-  /**
-   * showErrorToolsNotFound - sends information if d2 isn't found
-   *   and on how to install d2 to fix the problem.
-   *
-   */
-  showErrorToolsNotFound(msg: string): void {
-    const errorMsgs: string[] = [
-      "D2 executable not found.",
-      "Make sure the D2 executable is installed and on your system PATH.",
-      "https://d2lang.com/tour/install",
-      `${msg}`,
-    ];
-
-    outputChannel.appendError(Utility.strBreak);
-
-    for (const m of errorMsgs) {
-      outputChannel.appendError(m);
-    }
-    outputChannel.appendError(Utility.strBreak);
-
-    // Popup some toast to alert to the error
-    window.showErrorMessage(errorMsgs.join("\n"));
-
-    outputChannel.outputChannel.show();
-  }
-
-  /**
-   * checkForD2Install - looks for the d2 binary on the execPath
-   *   path from settings, and if not found there, the path is
-   *   searched.  If it isn't found anywhere, then an error message
-   *   is sent to the output and toast is put up in the UI
-   *
-   */
-  checkForD2Install(): void {
-    // If we have a path set, and the file exists, no need to
-    // search the path
-    const d2Path: string = ws.get("execPath", "d2");
-    if (existsSync(d2Path)) {
-      return;
-    }
-
-    const d2FileName = os.platform() === "win32" ? "d2.exe" : "d2";
-
-    if (!util.isFileOnPath(d2FileName)) {
-      util.showErrorToolsNotFound("");
-    }
-  }
-
-  /**
-   * isLayoutAvailable - returns true if `d2 layout` reports the given
-   *   layout engine, whether it is bundled with d2 or installed as a
-   *   plugin on the path.
-   */
-  isLayoutAvailable(layout: string): boolean {
-    const d2Path: string = ws.get("execPath", "d2");
-    const result = spawnSync(d2Path, ["layout"], { encoding: "utf-8", timeout: 3000 });
-    if (result.error || result.status !== 0) {
-      return false;
-    }
-
-    return new RegExp(`^${layout}\\b`, "m").test(result.stdout);
-  }
-}
-
-export class VT {
-  public static Yellow = "\x1B[1;33m";
-  public static Green = "\x1B[1;32m";
-  public static Reset = "\x1B[0m";
 }
 
 export const util: Utility = new Utility();

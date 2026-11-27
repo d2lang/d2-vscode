@@ -15,7 +15,11 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '20.x'
+          node-version: '22'
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version: '1.27.4'
+          cache-dependency-path: ci/build-runtime.cjs
       - name: Install dependencies
         run: yarn install --frozen-lockfile
       - run: COLOR=1 ./make.sh
@@ -24,30 +28,29 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
   language-server:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version: '1.27.4'
+          cache-dependency-path: ci/build-runtime.cjs
       - run: yarn install --frozen-lockfile
       - run: yarn test
-      - name: Extract the released and legacy D2 executables
-        working-directory: ${{ runner.temp }}
-        run: |
-          curl -fsSL --retry 3 -o native.tar.gz https://github.com/d2lang/d2/releases/download/v0.10.0/d2-v0.10.0-linux-amd64.tar.gz
-          echo '8d0431301a1c2cccb73e4895dc8144113b37fdc56d00c7666f6177b9ec90cd9a  native.tar.gz' | sha256sum -c
-          tar -xzf native.tar.gz -O d2-v0.10.0/bin/d2 > d2-native
-          curl -fsSL --retry 3 -o legacy.tar.gz https://github.com/d2lang/d2/releases/download/v0.9.0/d2-v0.9.0-linux-amd64.tar.gz
-          echo '5669ddc46b99e942cc96078f4a4e36d5e62103348f4c05179ede27802fdd87a9  legacy.tar.gz' | sha256sum -c
-          tar -xzf legacy.tar.gz -O d2-v0.9.0/bin/d2 > d2-legacy
-          chmod +x d2-native d2-legacy
-      - name: Run VS Code integration tests
+      - name: Exercise the bundled extension in VS Code on Linux
+        if: runner.os == 'Linux'
         run: xvfb-run -a yarn test:integration
-        env:
-          D2_LSP_BIN: ${{ runner.temp }}/d2-native
-          D2_LEGACY_BIN: ${{ runner.temp }}/d2-legacy
+      - name: Exercise the bundled extension in VS Code on Windows
+        if: runner.os == 'Windows'
+        run: yarn test:integration
   nofixups:
     runs-on: ubuntu-latest
     steps:

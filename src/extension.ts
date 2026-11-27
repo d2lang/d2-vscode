@@ -23,9 +23,8 @@ import * as mdItContainer from "markdown-it-container";
 import { layoutPicker } from "./layoutPicker";
 import { themePicker } from "./themePicker";
 import { TaskRunner } from "./taskRunner";
-import { d2Tasks } from "./tasks";
-import { util } from "./utility";
-import * as path from "path";
+import { disposeCompiler } from "./sdk";
+import { disposeMarkdownRenderer, renderMarkdownDiagram } from "./markdownPreview";
 import { registerExportCommands } from "./exportDiagram";
 import { renderExport } from "./renderExport";
 import { formatD2Block, formatD2Document } from "./format";
@@ -49,24 +48,32 @@ export type VSCAny = any;
 export function activate(context: ExtensionContext): VSCAny {
   extContext = context;
   registerD2Mcp(vscode, context);
+  context.subscriptions.push(new Disposable(() => {
+    disposeMarkdownRenderer();
+    void disposeCompiler();
+  }));
 
-  let cliFormatter: Disposable | undefined;
+  let sdkFormatter: Disposable | undefined;
   function setNativeFormatting(active: boolean): void {
     if (active) {
-      cliFormatter?.dispose();
-      cliFormatter = undefined;
-    } else if (languageServer && !cliFormatter) {
-      cliFormatter = languages.registerDocumentFormattingEditProvider(d2Lang, {
+      sdkFormatter?.dispose();
+      sdkFormatter = undefined;
+    } else if (languageServer && !sdkFormatter) {
+      sdkFormatter = languages.registerDocumentFormattingEditProvider(d2Lang, {
         provideDocumentFormattingEdits: formatD2Document,
       });
     }
   }
-  languageServer = new D2LanguageServer(outputChannel.outputChannel, setNativeFormatting);
+  languageServer = new D2LanguageServer(
+    outputChannel.outputChannel,
+    setNativeFormatting,
+    context.extensionPath
+  );
   setNativeFormatting(false);
-  context.subscriptions.push(new Disposable(() => cliFormatter?.dispose()));
+  context.subscriptions.push(new Disposable(() => sdkFormatter?.dispose()));
 
   function startLanguageServer(): void {
-    languageServer?.start(ws.get("execPath", "d2"));
+    languageServer?.start(ws.get("execPath", ""));
   }
 
   context.subscriptions.push(
@@ -219,14 +226,6 @@ export function activate(context: ExtensionContext): VSCAny {
     }
   });
 
-  /**
-   * Check that D2 is available up front
-   */
-  const checkForD2 = ws.get("checkForInstallAtStart");
-  if (checkForD2) {
-    util.checkForD2Install();
-  }
-
   // Return our markdown renderer
   return {
     // Sets up our ability to render for markdown files
@@ -248,24 +247,10 @@ const pluginKeyword = "d2";
 /**
  *
  * This function will be asked by the Markdown system to render
- * a d2 snippit in a markdown file
+ * a D2 snippet in a markdown file
  */
 export function extendMarkdownItWithD2(md: VSCAny): unknown {
   md.use(mdItContainer, pluginKeyword, {});
 
-  const highlight = md.options.highlight;
-  md.options.highlight = (code: string, lang: string) => {
-    if (lang === d2Lang) {
-      const activeEditor = path.parse(
-        window.activeTextEditor?.document.fileName ?? ""
-      ).dir;
-
-      return d2Tasks.compile(code, activeEditor, (msg) => {
-        outputChannel.appendInfo(msg);
-      });
-    }
-    return highlight(code, lang);
-  };
-
-  return md;
+  return renderMarkdownDiagram(md);
 }

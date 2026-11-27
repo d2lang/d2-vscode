@@ -1,54 +1,13 @@
 import { QuickPickItem, window } from "vscode";
-import { util } from "./utility";
 
-/**
- * Container for D2 Layouts
- */
-class LayoutItem implements QuickPickItem {
-  label: string;
-  description: string;
-
-  constructor(l: string, d: string) {
-    this.label = l;
-    this.description = d;
-  }
-}
-
-/**
- * List of Layouts
- */
 const layouts: QuickPickItem[] = [
-  new LayoutItem("diagram", "Use the diagram’s layout setting"),
-  new LayoutItem("dagre", "The directed graph layout library Dagre"),
-  new LayoutItem("elk", "Eclipse Layout Kernel (ELK) with the Layered algorithm"),
+  { label: "diagram", description: "Use the diagram’s layout setting" },
+  { label: "dagre", description: "The directed graph layout library Dagre" },
+  { label: "elk", description: "Eclipse Layout Kernel with the Layered algorithm" },
+  { label: "tala", description: "TALA layout" },
 ];
 
-const layoutTala = new LayoutItem("tala", "Terrastruct's AutoLayout Approach");
-
-const talaPluginName: string =
-  process.platform === "win32" ? "d2plugin-tala.exe" : "d2plugin-tala";
-
-/**
- * layouPicker - This will show the quick pick list in
- * the command pallette when called
- */
 export class layoutPicker {
-  constructor() {
-    // If d2 reports TALA (bundled or as a plugin), or the plugin file exists,
-    // add the option if it hasn't been added before
-    if (util.isLayoutAvailable("tala") || util.isFileOnPath(talaPluginName)) {
-      if (layouts.indexOf(layoutTala) === -1) {
-        layouts.push(layoutTala);
-      }
-    } else {
-      // If the plugin file does *not* exist, remove the option if it exists in the array
-      const idx = layouts.indexOf(layoutTala);
-      if (idx !== -1) {
-        layouts.splice(idx, 1);
-      }
-    }
-  }
-
   showPicker(): Thenable<QuickPickItem | undefined> {
     return window.showQuickPick(layouts, {
       title: "Layouts",

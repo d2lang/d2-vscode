@@ -14,9 +14,8 @@
 
 The official [D2](https://d2lang.com) extension for Visual Studio Code.
 
-_Note: Requires D2 to be installed on your machine. See
-[https://github.com/d2lang/d2/tree/master#install](https://github.com/d2lang/d2/tree/master#install)
-for instructions._
+Install the extension to preview, format, and export diagrams offline. It includes
+D2.js with Dagre, ELK, and TALA, plus the D2 language server and MCP server.
 
 ## Currently Supports
 
@@ -50,7 +49,7 @@ the preview. **Compile D2 to SVG** still writes a sibling SVG in one step.
 For diagrams with multiple boards, PDF and PowerPoint include a page or slide
 per board. GIF animates the boards. To export an animated SVG, set
 `vars.d2-config.animate-interval` in the diagram. PNG and text export the root
-board. Available formats depend on the installed D2 CLI.
+board. All six formats are included.
 
 ## Diagram snippets
 
@@ -61,28 +60,24 @@ fields. The animated example uses D2 v0.10 or later. In Markdown, choose
 
 ## Language server
 
-Open a D2 file to start the language server. The extension runs `d2 lsp` using
-the D2 executable on your `PATH`. To use a different build, set `D2.execPath`
-to its executable path. Changing that setting restarts the server.
+Open a D2 file to start the bundled language server. It provides completion,
+diagnostics, hover, go-to-definition, references, and rename.
 
 For cross-file rename, open the diagrams that import the shape before running
 **Rename Symbol**. The server reads unsaved edits in those diagrams and follows
 their imports.
 
-Language features require a D2 build with the `lsp` command. With older
-versions, including v0.9.0, **Format Document** continues to use `d2 fmt`.
-The extension also uses `d2 fmt` for documents above the server's 2 MiB limit.
-Preview and Markdown block formatting work with older versions.
+Advanced users can set `D2.execPath` to a custom D2 executable for the
+language server, MCP, and binary exports. Clearing the setting restores the
+bundled tools. Preview and Markdown formatting use D2.js.
 
 ## AI diagrams with MCP
 
-In a trusted workspace, VS Code 1.101 and later can discover the D2 Model
-Context Protocol (MCP) server when the executable selected by `D2.execPath`
-supports `d2 mcp`. Open **MCP: List Servers** in the Command Palette to find
-**D2**, then ask your agent to “Use D2 to draw a diagram of an API sending
-jobs to a queue.” The server can check the source and return a rendered diagram.
+In a trusted workspace on VS Code 1.101 or later, open **MCP: List Servers**
+and select **D2** to use the bundled server. Ask your agent to “Use D2 to draw
+a diagram of an API sending jobs to a queue.” The server can check the source
+and return a rendered diagram.
 
-If you upgrade D2 at the same path, reload the window to discover the server.
 See the [D2 MCP guide](https://d2lang.com/tour/mcp/) for a worked example.
 
 ## Example
@@ -103,30 +98,23 @@ formatter under `[d2]`, change `editor.defaultFormatter` to
 
 ## Contributing
 
-To package and install the extension locally, run:
+Building from source requires Node.js, Yarn Classic, and Go. The build compiles
+the D2 protocol servers and binary exporters from a checksum-pinned release
+into a portable WebAssembly module. The VSIX includes that module, its Go
+runtime glue, and the Node distribution of D2.js.
 
 ```sh
-npm install -g @vscode/vsce
-npm run dev
-```
-
-You can run rerun `npm run dev` after any change to install the updated extension.
-
-Sometimes VS Code will not pick up the new extension without being restarted so you
-can also run the following on macOS:
-
-```sh
-# Where d2-testing is some folder in which you want to test the extension.
-osascript -e 'quit app "Visual Studio Code"'; yarn dev && code ~/d2-testing
+yarn install --frozen-lockfile
+yarn pkg
+code --install-extension d2.vsix
 ```
 
 ### CI
 
 CI relies on D2's shared [CI submodule](https://github.com/d2lang/ci).
 
-To run the VS Code integration tests, set `D2_LSP_BIN` to a D2 executable with
-the `lsp` command and `D2_LEGACY_BIN` to an older D2 executable, then run
-`yarn test:integration`. Set `VSCODE_EXECUTABLE_PATH` to test an existing VS Code
+Run `yarn test:integration` to exercise the bundled tools in VS Code with D2
+absent from `PATH`. Set `VSCODE_EXECUTABLE_PATH` to test an existing VS Code
 installation.
 
 To run all CI: `./make.sh`.
