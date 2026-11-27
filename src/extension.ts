@@ -26,7 +26,8 @@ import { TaskRunner } from "./taskRunner";
 import { d2Tasks } from "./tasks";
 import { util } from "./utility";
 import * as path from "path";
-import { exportDiagram } from "./exportDiagram";
+import { registerExportCommands } from "./exportDiagram";
+import { renderExport } from "./renderExport";
 import { formatD2Block, formatD2Document } from "./format";
 import { D2LanguageServer } from "./languageServer";
 import { registerD2Mcp } from "./mcpServer";
@@ -163,10 +164,7 @@ export function activate(context: ExtensionContext): VSCAny {
     })
   );
 
-  context.subscriptions.push(
-    commands.registerCommand("D2.CompileToSvg", (uri) => exportDiagram(uri, true)),
-    commands.registerCommand("D2.ExportDiagram", (uri) => exportDiagram(uri))
-  );
+  registerExportCommands(vscode, context, renderExport, outputChannel);
 
   context.subscriptions.push(commands.registerCommand("D2.FormatD2Block", formatD2Block));
 
