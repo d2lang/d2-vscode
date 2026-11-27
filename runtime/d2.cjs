@@ -6,6 +6,7 @@ const path = require("node:path");
 const vm = require("node:vm");
 
 const globals = {
+  d2HTTP: require("./http.cjs"),
   fs, path, process, console, setTimeout, clearTimeout, performance, TextEncoder, TextDecoder,
   WebAssembly, Uint8Array, Uint8ClampedArray, Error, crypto: require("node:crypto").webcrypto,
   fetch: globalThis.fetch, Headers: globalThis.Headers, AbortController: globalThis.AbortController,

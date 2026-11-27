@@ -1,16 +1,34 @@
 const assert = require("node:assert/strict");
-const { spawn } = require("node:child_process");
+const { execFile, spawn } = require("node:child_process");
 const fs = require("node:fs");
+const http = require("node:http");
 const os = require("node:os");
 const path = require("node:path");
 const { createInterface } = require("node:readline");
 const { test } = require("node:test");
 const { pathToFileURL, fileURLToPath } = require("node:url");
 const rpc = require("vscode-jsonrpc/node");
+const launcher = path.resolve(__dirname, "../runtime/d2.cjs");
+
+test("the HTTPS adapter pins the socket address and verifies the original TLS name", (t) => {
+  const https = require("node:https");
+  let options;
+  t.mock.method(https, "get", (value) => {
+    options = value;
+    return { on() {}, destroy() {} };
+  });
+  require("../runtime/http.cjs").open("https", "1.1.1.1", "example.org", "", "example.org", "/icon.svg", {});
+  assert.equal(options.hostname, "1.1.1.1");
+  assert.equal(options.headers.host, "example.org");
+  assert.equal(options.servername, "example.org");
+  assert.equal(options.agent, false);
+  assert.equal(options.rejectUnauthorized, true);
+  assert.equal(options.checkServerIdentity("1.1.1.1", { subjectaltname: "DNS:example.org" }), undefined);
+  assert.ok(options.checkServerIdentity("1.1.1.1", { subjectaltname: "DNS:other.example.org" }));
+});
 
 function start(t, args) {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), "D2 protocol "));
-  const launcher = path.resolve(__dirname, "../runtime/d2.cjs");
   const proc = spawn(process.execPath, [launcher, "--ms-enable-electron-run-as-node", ...args], {
     cwd,
     env: { ...process.env, PATH: "", ELECTRON_RUN_AS_NODE: "1" },
@@ -64,6 +82,47 @@ test("the bundled language server resolves a disk import and publishes idle diag
   assert.match((await diagnostics)[0].message, /maps must be terminated/);
   await connection.sendRequest("shutdown");
   await connection.sendNotification("exit");
+});
+
+test("WASM asset requests obey network policy, redirects, encodings and byte limits", {
+  timeout: 30_000,
+}, async (t) => {
+  const icon = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12"><rect width="12" height="12"/></svg>';
+  const requests = [];
+  const server = http.createServer((req, res) => {
+    requests.push(req.url);
+    if (req.url === "/redirect") {
+      res.writeHead(302, { Location: "/icon.svg" }).end();
+    } else if (req.url === "/oversize") {
+      res.writeHead(200, { "Content-Type": "image/svg+xml", "Content-Length": 2 ** 30 });
+      res.flushHeaders();
+      // The client must reject from headers without waiting for a response body.
+    } else {
+      res.writeHead(200, { "Content-Type": "image/svg+xml", "Content-Encoding": "gzip" });
+      res.end(require("node:zlib").gzipSync(icon));
+    }
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+  const base = "http://127.0.0.1:" + server.address().port;
+  function render(route, trusted = false) {
+    return new Promise((resolve) => {
+      const child = execFile(process.execPath, [launcher, "--bundle", "-", "-"], {
+        timeout: 15_000,
+        env: { ...process.env, PATH: "", D2_ALLOW_PRIVATE_NETWORK: String(trusted) },
+      }, (error, stdout, stderr) => resolve({ error, stdout, stderr }));
+      child.stdin.end("node.icon: " + base + route);
+    });
+  }
+  assert.ok((await render("/redirect")).error);
+  assert.deepEqual(requests, [], "public-only mode never opens a loopback socket");
+  const { error, stdout } = await render("/redirect", true);
+  assert.ifError(error);
+  assert.match(stdout, /href="data:image\/svg\+xml;base64,/);
+  assert.deepEqual(requests, ["/redirect", "/icon.svg"]);
+  const oversize = await render("/oversize", true);
+  assert.ok(oversize.error);
+  assert.match(oversize.stderr, /fetched bytes/);
 });
 
 test("the bundled MCP server lists tools and renders PNG with an empty PATH", {
