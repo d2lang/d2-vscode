@@ -31,8 +31,13 @@ async function replaceBuffer(document, source) {
   assert(await workspace.applyEdit(edit));
 }
 
-async function checkFormat(document, prefix = "") {
+function assertDocumentText(document, lfSource) {
   const newline = document.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n";
+  assert.equal(document.getText(), lfSource.replace(/\n/g, newline));
+}
+
+async function checkFormat(document, prefix = "") {
+  const originalEol = document.eol;
   await replaceBuffer(document, prefix + "api->db\n");
   const edits = await commands.executeCommand(
     "vscode.executeFormatDocumentProvider",
@@ -46,7 +51,8 @@ async function checkFormat(document, prefix = "") {
   const change = new WorkspaceEdit();
   change.set(document.uri, edits);
   assert(await workspace.applyEdit(change));
-  assert(document.getText() === prefix + "api -> db" + newline, "Incorrect formatted text");
+  assert.equal(document.eol, originalEol, "Formatting must preserve line endings");
+  assertDocumentText(document, prefix + "api -> db\n");
 }
 
 async function checkSvgExport() {
@@ -176,8 +182,8 @@ exports.run = async () => {
     "service",
   );
   assert(await workspace.applyEdit(rename));
-  assert.equal(library.getText(), "# unsaved\nservice: API\n");
-  assert.equal(main.getText(), "...@library\nservice -> db\nnote: {near: service}\n");
+  assertDocumentText(library, "# unsaved\nservice: API\n");
+  assertDocumentText(main, "...@library\nservice -> db\nnote: {near: service}\n");
 
   const hover = await commands.executeCommand(
     "vscode.executeHoverProvider",
@@ -222,7 +228,7 @@ exports.run = async () => {
   const editor = await window.showTextDocument(markdown);
   editor.selection = new vscode.Selection(3, 0, 3, 0);
   await commands.executeCommand("D2.FormatD2Block");
-  assert.equal(markdown.getText(), "# Diagram\n\n```d2\napi -> db\n```\n");
+  assertDocumentText(markdown, "# Diagram\n\n```d2\napi -> db\n```\n");
 
   await config.update(
     "execPath",
