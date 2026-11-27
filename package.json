@@ -80,6 +80,16 @@
         "id": "d2-markdown-injection"
       }
     ],
+    "snippets": [
+      {
+        "language": "d2",
+        "path": "./snippets/d2.json"
+      },
+      {
+        "language": "markdown",
+        "path": "./snippets/markdown.json"
+      }
+    ],
     "grammars": [
       {
         "language": "d2",

@@ -52,6 +52,13 @@ per board. GIF animates the boards. To export an animated SVG, set
 `vars.d2-config.animate-interval` in the diagram. PNG and text export the root
 board. Available formats depend on the installed D2 CLI.
 
+## Diagram snippets
+
+In a D2 file, run **Snippets: Insert Snippet** and choose **D2 sequence
+diagram**, **D2 grid**, or **D2 animated steps**. Press Tab to move between
+fields. The animated example uses D2 v0.10 or later. In Markdown, choose
+**D2 diagram block** to insert a fenced diagram.
+
 ## Language server
 
 Open a D2 file to start the language server. The extension runs `d2 lsp` using

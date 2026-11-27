@@ -1,0 +1,40 @@
+{
+  "D2 sequence diagram": {
+    "prefix": "d2-sequence",
+    "body": [
+      "${1:request}: {",
+      "\tshape: sequence_diagram",
+      "\t${2:client} -> ${3:server}: ${4:Request}",
+      "\t$3 -> $2: ${5:Response}",
+      "}$0"
+    ],
+    "description": "Start a sequence diagram with a request and response."
+  },
+  "D2 grid": {
+    "prefix": "d2-grid",
+    "body": [
+      "${1:services}: {",
+      "\tgrid-columns: ${2:2}",
+      "\t${3:api}",
+      "\t${4:worker}",
+      "}$0"
+    ],
+    "description": "Arrange shapes in a grid."
+  },
+  "D2 animated steps": {
+    "prefix": "d2-steps",
+    "body": [
+      "vars.d2-config: {",
+      "\tanimate-interval: ${1:1s}",
+      "\tanimate-duration: ${2:400ms}",
+      "}",
+      "",
+      "${3:worker}: ${4:Waiting}",
+      "steps.${5:active}: {",
+      "\t$3: ${6:Running}",
+      "\t$3.style.fill: ${7:lightgreen}",
+      "}$0"
+    ],
+    "description": "Animate a diagram between two states with D2 v0.10 or later."
+  }
+}

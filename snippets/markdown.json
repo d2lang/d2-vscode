@@ -1,0 +1,7 @@
+{
+  "D2 diagram block": {
+    "prefix": "d2-fence",
+    "body": ["```d2", "${1:client} -> ${2:server}$0", "```"],
+    "description": "Insert a fenced D2 diagram."
+  }
+}
