@@ -130,7 +130,7 @@ class Utility {
    */
   isLayoutAvailable(layout: string): boolean {
     const d2Path: string = ws.get("execPath", "d2");
-    const result = spawnSync(d2Path, ["layout"], { encoding: "utf-8" });
+    const result = spawnSync(d2Path, ["layout"], { encoding: "utf-8", timeout: 3000 });
     if (result.error || result.status !== 0) {
       return false;
     }

@@ -48,6 +48,30 @@ async function checkFormat(document, prefix = "") {
   assert(document.getText() === prefix + "api -> db" + newline, "Incorrect formatted text");
 }
 
+async function checkPreviewSettings() {
+  const config = workspace.getConfiguration("D2");
+  const source = "vars: {d2-config: {layout-engine: tala; theme-id: 200; sketch: true}}\na -> b\n";
+  const extension = await vscode.extensions.getExtension("d2lang.d2lang").activate();
+  const preview = extension.extendMarkdownIt({ options: {}, use() {} }).options.highlight;
+  const render = async (name, args) => {
+    const expected = require("node:child_process").execFileSync(process.env.D2_LSP_BIN, [...args, "-"], {
+      input: source, encoding: "utf8", stdio: ["pipe", "pipe", "pipe"],
+    });
+    await eventually(name + " SVG preview", () => preview(source, "d2") === expected);
+  };
+  await render("diagram-defaults", []);
+  try {
+    await config.update("previewLayout", "dagre", vscode.ConfigurationTarget.Workspace);
+    await config.update("previewTheme", "default", vscode.ConfigurationTarget.Workspace);
+    await config.update("previewSketch", false, vscode.ConfigurationTarget.Workspace);
+    await render("editor-overrides", ["--layout=dagre", "--theme=0", "--sketch=false"]);
+  } finally {
+    for (const key of ["previewLayout", "previewTheme", "previewSketch"]) {
+      await config.update(key, undefined, vscode.ConfigurationTarget.Workspace);
+    }
+  }
+}
+
 exports.run = async () => {
   const library = await openFile("library.d2", "on_disk\n");
   const main = await openFile(
@@ -63,6 +87,7 @@ exports.run = async () => {
     (await symbols()).map((symbol) => symbol.name),
     ["x"],
   );
+  await checkPreviewSettings();
   const untitled = await workspace.openTextDocument({ language: "d2", content: "draft" });
   const draftSymbols = await commands.executeCommand(
     "vscode.executeDocumentSymbolProvider",

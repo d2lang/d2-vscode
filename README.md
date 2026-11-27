@@ -27,7 +27,7 @@ for instructions._
 - Go to Definition, Find All References, and Rename Symbol across D2 imports
 - Format a fenced `d2` block in Markdown. Place the cursor inside the block or select it, then run **d2: Format D2 Block** from the Command Palette or **Format D2 Block** from the editor context menu.
 - View rendered D2 code snippets in markdown document preview
-- Theme and Layout are configurable from settings and the Command Palette
+- Previews follow the diagram’s layout, theme and sketch settings. Choose a layout or theme in the Command Palette to override it. Choose `diagram` in either picker or reset `D2.previewSketch` to follow the source again.
 
 ```d2
 x -> y

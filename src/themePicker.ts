@@ -32,7 +32,7 @@ const themes: ThemeItem[] = [
   new ThemeItem("Everglade green", 104),
   new ThemeItem("Buttered toast", 105),
   new ThemeItem("Dark mauve", 200),
-  new ThemeItem("DarkFlagshipTerrastruct", 201),
+  new ThemeItem("Dark Flagship Terrastruct", 201),
   new ThemeItem("Terminal", 300),
   new ThemeItem("Terminal Grayscale", 301),
   new ThemeItem("Origami", 302),
@@ -43,6 +43,7 @@ const themes: ThemeItem[] = [
  * value that is used on the D2 commandline
  */
 export function NameToThemeNumber(theme: string): number {
+  if (theme === "DarkFlagshipTerrastruct") return 201; // Older picker spelling.
   for (const t in themes) {
     if (themes[t].label === theme) {
       return themes[t].value;
@@ -57,7 +58,7 @@ export function NameToThemeNumber(theme: string): number {
  */
 export class themePicker {
   showPicker(): Thenable<QuickPickItem | undefined> {
-    return window.showQuickPick(themes, {
+    return window.showQuickPick([{ label: "diagram", description: "Use the diagram’s theme setting" }, ...themes], {
       title: "Themes",
       canPickMany: false,
       placeHolder: "Choose a theme...",
