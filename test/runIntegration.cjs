@@ -28,7 +28,8 @@ async function main() {
         D2_LEGACY_BIN: process.env.D2_LEGACY_BIN || path.join(temp, "no-external-d2"),
       },
       launchArgs: [
-        folder,
+        // vscode-test starts the Windows editor through cmd.exe.
+        process.platform === "win32" ? '"' + folder + '"' : folder,
         "--disable-extensions",
         "--disable-workspace-trust",
         "--skip-welcome",
