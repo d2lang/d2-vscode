@@ -3,7 +3,7 @@
   "displayName": "d2lang",
   "publisher": "d2lang",
   "description": "The official D2 extension for Visual Studio Code. Preview diagrams, format D2 files, and navigate definitions with the D2 language server.",
-  "version": "0.8.10",
+  "version": "0.9.0",
   "license": "BSD-3-Clause",
   "contributors": [
     "Barry Nolte <barry@barrynolte.com>"
