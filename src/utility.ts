@@ -122,6 +122,21 @@ class Utility {
       util.showErrorToolsNotFound("");
     }
   }
+
+  /**
+   * isLayoutAvailable - returns true if `d2 layout` reports the given
+   *   layout engine, whether it is bundled with d2 or installed as a
+   *   plugin on the path.
+   */
+  isLayoutAvailable(layout: string): boolean {
+    const d2Path: string = ws.get("execPath", "d2");
+    const result = spawnSync(d2Path, ["layout"], { encoding: "utf-8" });
+    if (result.error || result.status !== 0) {
+      return false;
+    }
+
+    return new RegExp(`^${layout}\\b`, "m").test(result.stdout);
+  }
 }
 
 export class VT {
