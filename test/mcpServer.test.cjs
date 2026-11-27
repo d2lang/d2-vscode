@@ -54,8 +54,8 @@ test("publishes only the current trusted D2 executable with MCP support", (t) =>
       }
     },
     McpStdioServerDefinition: class {
-      constructor(label, command, args) {
-        Object.assign(this, { label, command, args });
+      constructor(label, command, args, env) {
+        Object.assign(this, { label, command, args, env });
       }
     },
     lm: {
@@ -66,7 +66,7 @@ test("publishes only the current trusted D2 executable with MCP support", (t) =>
       },
     },
   };
-  const context = { subscriptions: [] };
+  const context = { subscriptions: [], extensionPath: process.cwd() };
   registerD2Mcp(api, context);
   const servers = () => provider.provideMcpServerDefinitions();
   const updates = [];
@@ -98,9 +98,17 @@ test("publishes only the current trusted D2 executable with MCP support", (t) =>
   change("missing-d2");
   probes[3].finish(new Error("ENOENT"), "");
   assert.deepEqual(servers(), []);
-  change("d2");
+  for (const defaultSetting of ["", "d2"]) {
+    change(defaultSetting);
+    assert.equal(servers()[0].command, process.execPath);
+    assert.equal(servers()[0].args[0], require("node:path").join(process.cwd(), "runtime", "d2.cjs"));
+    assert.equal(servers()[0].args.at(-1), "mcp");
+    assert.deepEqual(servers()[0].env, { ELECTRON_RUN_AS_NODE: "1" });
+    assert.equal(probes.length, 4, "the packaged server never probes PATH");
+  }
+  change("custom-d2");
   for (const subscription of context.subscriptions) subscription.dispose();
   probes[4].finish(null, help);
   assert.deepEqual(servers(), []);
-  assert.equal(updates.length, 2);
+  assert.equal(updates.length, 6);
 });
