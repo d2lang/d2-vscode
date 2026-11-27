@@ -3,7 +3,7 @@
   "displayName": "d2lang",
   "publisher": "d2lang",
   "description": "The official D2 extension for Visual Studio Code. Preview diagrams, format D2 files, and navigate definitions with the D2 language server.",
-  "version": "0.8.10",
+  "version": "0.9.0",
   "license": "BSD-3-Clause",
   "contributors": [
     "Barry Nolte <barry@barrynolte.com>"
@@ -80,6 +80,16 @@
         "id": "d2-markdown-injection"
       }
     ],
+    "snippets": [
+      {
+        "language": "d2",
+        "path": "./snippets/d2.json"
+      },
+      {
+        "language": "markdown",
+        "path": "./snippets/markdown.json"
+      }
+    ],
     "grammars": [
       {
         "language": "d2",
@@ -117,6 +127,11 @@
       {
         "command": "D2.CompileToSvg",
         "title": "Compile D2 to SVG",
+        "category": "d2"
+      },
+      {
+        "command": "D2.ExportDiagram",
+        "title": "Export Diagram As...",
         "category": "d2"
       },
       {
@@ -242,6 +257,11 @@
           "group": "d2"
         },
         {
+          "command": "D2.ExportDiagram",
+          "when": "resourceLangId == d2",
+          "group": "d2"
+        },
+        {
           "command": "D2.FormatD2Block",
           "when": "editorLangId == markdown && !editorReadonly",
           "group": "d2"
@@ -274,6 +294,11 @@
           "group": "d2"
         },
         {
+          "command": "D2.ExportDiagram",
+          "when": "resourceLangId == d2",
+          "group": "d2"
+        },
+        {
           "command": "D2.FormatD2Block",
           "when": "editorLangId == markdown && !editorReadonly",
           "group": "d2"
@@ -286,7 +311,7 @@
           "group": "d2"
         },
         {
-          "command": "D2.CompileToSvg",
+          "command": "D2.ExportDiagram",
           "when": "resourceLangId == d2",
           "group": "d2"
         }
@@ -301,6 +326,11 @@
           "command": "D2.CompileToSvg",
           "when": "resourceLangId == d2",
           "group": "d2"
+        },
+        {
+          "command": "D2.ExportDiagram",
+          "when": "resourceLangId == d2",
+          "group": "d2"
         }
       ],
       "explorer/context": [
@@ -311,6 +341,11 @@
         },
         {
           "command": "D2.CompileToSvg",
+          "when": "resourceLangId == d2",
+          "group": "d2"
+        },
+        {
+          "command": "D2.ExportDiagram",
           "when": "resourceLangId == d2",
           "group": "d2"
         }
@@ -334,7 +369,7 @@
     "compile": "webpack",
     "watch": "webpack --watch --devtool source-map",
     "package": "webpack --mode production --devtool hidden-source-map",
-    "test": "tsc -p src --outDir node_modules/.cache/d2-test && node --test test/markdownBlock.test.cjs test/mcpServer.test.cjs",
+    "test": "tsc -p src --outDir node_modules/.cache/d2-test && node --test test/exportDiagram.test.cjs test/markdownBlock.test.cjs test/mcpServer.test.cjs",
     "test:integration": "yarn compile && node test/runIntegration.cjs",
     "dev": "code --uninstall-extension d2lang.d2lang; yarn gen && yarn pkg && code --install-extension d2.vsix",
     "gen": "yq -o=json . syntaxes/d2.tmLanguage.yaml > syntaxes/d2.tmLanguage.json",

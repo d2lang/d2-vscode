@@ -48,6 +48,39 @@ async function checkFormat(document, prefix = "") {
   assert(document.getText() === prefix + "api -> db" + newline, "Incorrect formatted text");
 }
 
+async function checkSvgExport() {
+  const folder = Uri.joinPath(workspace.workspaceFolders[0].uri, "Export diagrams");
+  await workspace.fs.createDirectory(folder);
+  const library = Uri.joinPath(folder, "library.d2");
+  const source = Uri.joinPath(folder, "input diagram.d2");
+  const target = Uri.joinPath(folder, "input diagram.svg");
+  await workspace.fs.writeFile(library, Buffer.from("library: Imported label\n"));
+  await workspace.fs.writeFile(source, Buffer.from("old: Saved label\n"));
+  const document = await workspace.openTextDocument(source);
+  await replaceBuffer(document, "...@library\nfresh: Unsaved label\n");
+  await commands.executeCommand("D2.CompileToSvg", source);
+  const exported = Buffer.from(await workspace.fs.readFile(target));
+  assert.match(exported.toString(), /Imported label/);
+  assert.match(exported.toString(), /Unsaved label/);
+  assert.doesNotMatch(exported.toString(), /Saved label/);
+  assert.equal(Buffer.from(await workspace.fs.readFile(source)).toString(), "old: Saved label\n");
+
+  await replaceBuffer(document, "broken: {\n");
+  await commands.executeCommand("D2.CompileToSvg", source);
+  assert.deepEqual(Buffer.from(await workspace.fs.readFile(target)), exported);
+
+  // A folder at the default SVG path can contain a previous multiboard export.
+  await workspace.fs.delete(target);
+  await workspace.fs.createDirectory(target);
+  const previous = Uri.joinPath(target, "previous.svg");
+  await workspace.fs.writeFile(previous, exported);
+  await replaceBuffer(document, "a -> b\n");
+  await commands.executeCommand("D2.CompileToSvg", source);
+  assert.deepEqual(Buffer.from(await workspace.fs.readFile(previous)), exported);
+  const files = await workspace.fs.readDirectory(folder);
+  assert(!files.some(([name]) => name.startsWith(".d2-export-")));
+}
+
 async function checkPreviewSettings() {
   const config = workspace.getConfiguration("D2");
   const source = "vars: {d2-config: {layout-engine: tala; theme-id: 200; sketch: true}}\na -> b\n";
@@ -88,6 +121,7 @@ exports.run = async () => {
     ["x"],
   );
   await checkPreviewSettings();
+  await checkSvgExport();
   const untitled = await workspace.openTextDocument({ language: "d2", content: "draft" });
   const draftSymbols = await commands.executeCommand(
     "vscode.executeDocumentSymbolProvider",
