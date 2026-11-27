@@ -1,5 +1,5 @@
-import { execFile } from "child_process";
-import { mkdtemp, rm, stat } from "fs/promises";
+import { D2 } from "@d2lang/d2";
+import { mkdtemp, rm, writeFile } from "fs/promises";
 import { tmpdir } from "os";
 import * as path from "path";
 import { randomUUID } from "crypto";
@@ -11,36 +11,11 @@ import {
   Uri,
   workspace,
 } from "vscode";
-import { outputChannel } from "./extension";
-import { renderFlags } from "./tasks";
-
-function runRenderer(
-  executable: string,
-  args: string[],
-  cwd: string | undefined,
-  source: string,
-  token: CancellationToken
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const child = execFile(
-      executable,
-      args,
-      { cwd, windowsHide: true },
-      (error, _stdout, stderr) => {
-        cancellation.dispose();
-        if (error) {
-          reject(new Error(stderr.trim() || error.message));
-        } else {
-          resolve();
-        }
-      }
-    );
-    const cancellation = token.onCancellationRequested(() => child.kill());
-    // A missing executable or a cancelled render can close stdin before it is read.
-    child.stdin?.on("error", () => undefined);
-    child.stdin?.end(source);
-  });
-}
+import { extContext, outputChannel } from "./extension";
+import { resolveD2 } from "./bundledD2";
+import { renderSource } from "./sdk";
+import { previewOptions } from "./tasks";
+import { renderFlags, runD2 } from "./runD2";
 
 export async function renderExport(
   document: TextDocument,
@@ -49,44 +24,51 @@ export async function renderExport(
   token: CancellationToken
 ): Promise<void> {
   const config = workspace.getConfiguration("D2", document.uri);
-  const args = renderFlags(
-    config.get("previewLayout", "diagram"),
-    config.get("previewTheme", "diagram"),
-    config.get<boolean | null>("previewSketch", null)
-  );
-  // D2 rejects static output when the source sets a positive animation interval.
-  if (format !== "svg" && format !== "gif") {
-    args.push("--animate-interval=0");
-  }
-  if (format === "png" || format === "txt") {
-    args.push("--target=");
-  }
+  const options = previewOptions(document.uri);
   const cwd = document.isUntitled
-    ? workspace.getWorkspaceFolder(document.uri)?.uri.fsPath ??
-      workspace.workspaceFolders?.[0]?.uri.fsPath
+    ? (workspace.getWorkspaceFolder(document.uri)?.uri.fsPath ??
+      workspace.workspaceFolders?.[0]?.uri.fsPath)
     : path.dirname(document.uri.fsPath);
   const source = document.getText();
   const dir = await mkdtemp(path.join(tmpdir(), "d2-export-"));
   const output = path.join(dir, "diagram." + format);
+  const cancellation = new AbortController();
+  let compiler: D2 | undefined;
+  const listener = token.onCancellationRequested(() => {
+    cancellation.abort();
+    compiler?.dispose();
+  });
   try {
     if (token.isCancellationRequested) {
       return;
     }
-    await runRenderer(
-      config.get("execPath", "d2"),
-      [...args, "-", output],
-      cwd,
-      source,
-      token
-    );
-    // The CLI normally emits one file per board for a non-animated multiboard SVG.
-    if (
-      format === "svg" &&
-      (await stat(path.join(dir, "diagram")).catch(() => undefined))?.isDirectory()
-    ) {
-      throw new Error(
-        "This diagram has multiple boards. Choose PDF, PowerPoint, or GIF to export all boards in one file, or set vars.d2-config.animate-interval for an animated SVG."
+    if (format === "txt" || format === "svg") {
+      const entry = document.isUntitled
+        ? cwd && path.join(cwd, "untitled.d2")
+        : document.uri.fsPath;
+      compiler = new D2();
+      const result = await renderSource(
+        source,
+        entry,
+        options,
+        format,
+        compiler,
+        cancellation.signal
       );
+      await writeFile(output, result);
+    } else {
+      const args = renderFlags(options);
+      if (format !== "gif") {
+        args.push("--animate-interval=0");
+      }
+      if (format === "png") {
+        args.push("--target=");
+      }
+      const executable = resolveD2(
+        config.get<string>("execPath"),
+        extContext.extensionPath
+      );
+      await runD2(executable, [...args, "-", output], cwd, source, cancellation.signal);
     }
     if (token.isCancellationRequested) {
       return;
@@ -116,6 +98,8 @@ export async function renderExport(
       await workspace.fs.delete(staged).then(undefined, () => undefined);
     }
   } finally {
+    listener.dispose();
+    await compiler?.dispose();
     await rm(dir, { recursive: true, force: true });
   }
 }

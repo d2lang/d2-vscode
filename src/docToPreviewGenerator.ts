@@ -16,6 +16,7 @@ export class D2P {
   outputDoc?: BrowserWindow;
   timer?: RefreshTimer;
   fileDateTime: number = 0;
+  generation = 0;
 }
 
 /**
@@ -72,7 +73,7 @@ export class DocToPreviewGenerator {
    **/
   private getFileTimes(): void {
     this.mapOfConnection.forEach((trk: D2P, td: TextDocument) => {
-      trk.fileDateTime = statSync(td.uri.fsPath).mtimeMs;
+      trk.fileDateTime = statSync(td.uri.fsPath, { throwIfNoEntry: false })?.mtimeMs ?? 0;
     });
   }
 
@@ -126,7 +127,11 @@ export class DocToPreviewGenerator {
 
     trkObj.outputDoc?.showBusy();
 
-    taskRunner.genTask(trkObj.inputDoc?.fileName, fileText, (data, error) => {
+    const generation = ++trkObj.generation;
+    taskRunner.genTask(trkObj.inputDoc, (data, error) => {
+      if (generation !== trkObj.generation) {
+        return;
+      }
       const p = path.parse(trkObj.inputDoc?.fileName || "");
 
       if (data.length > 0) {
@@ -139,7 +144,7 @@ export class DocToPreviewGenerator {
 
         let list = "";
         arr.forEach((s) => {
-          list += `<li>${s}</li>`;
+          list += `<li>${s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</li>`;
         });
 
         trkObj.outputDoc?.setToastMsg("Errors");

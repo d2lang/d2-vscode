@@ -1,4 +1,5 @@
 const assert = require("node:assert/strict");
+const path = require("node:path");
 const { setTimeout: sleep } = require("node:timers/promises");
 const vscode = require("vscode");
 
@@ -54,14 +55,20 @@ async function checkSvgExport() {
   const library = Uri.joinPath(folder, "library.d2");
   const source = Uri.joinPath(folder, "input diagram.d2");
   const target = Uri.joinPath(folder, "input diagram.svg");
-  await workspace.fs.writeFile(library, Buffer.from("library: Imported label\n"));
+  const nested = Uri.joinPath(folder, "nested");
+  await workspace.fs.createDirectory(nested);
+  await workspace.fs.writeFile(Uri.joinPath(nested, "labels.d2"), Buffer.from("library: Imported label\n"));
+  await workspace.fs.writeFile(library, Buffer.from("...@nested/labels\n"));
+  const icon = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><circle cx="5" cy="5" r="3"/></svg>';
+  await workspace.fs.writeFile(Uri.joinPath(folder, "icon.svg"), Buffer.from(icon));
   await workspace.fs.writeFile(source, Buffer.from("old: Saved label\n"));
   const document = await workspace.openTextDocument(source);
-  await replaceBuffer(document, "...@library\nfresh: Unsaved label\n");
+  await replaceBuffer(document, "...@library\nfresh: Unsaved label {icon: ./icon.svg}\n");
   await commands.executeCommand("D2.CompileToSvg", source);
   const exported = Buffer.from(await workspace.fs.readFile(target));
   assert.match(exported.toString(), /Imported label/);
   assert.match(exported.toString(), /Unsaved label/);
+  assert.match(exported.toString(), /href="data:image\/svg\+xml/);
   assert.doesNotMatch(exported.toString(), /Saved label/);
   assert.equal(Buffer.from(await workspace.fs.readFile(source)).toString(), "old: Saved label\n");
 
@@ -84,21 +91,30 @@ async function checkSvgExport() {
 async function checkPreviewSettings() {
   const config = workspace.getConfiguration("D2");
   const source = "vars: {d2-config: {layout-engine: tala; theme-id: 200; sketch: true}}\na -> b\n";
-  const extension = await vscode.extensions.getExtension("d2lang.d2lang").activate();
-  const preview = extension.extendMarkdownIt({ options: {}, use() {} }).options.highlight;
-  const render = async (name, args) => {
-    const expected = require("node:child_process").execFileSync(process.env.D2_LSP_BIN, [...args, "-"], {
-      input: source, encoding: "utf8", stdio: ["pipe", "pipe", "pipe"],
-    });
-    await eventually(name + " SVG preview", () => preview(source, "d2") === expected);
+  const markdown = await openFile("settings-preview.md", "```d2\n" + source + "```");
+  const { D2 } = require(path.join(
+    vscode.extensions.getExtension("d2lang.d2lang").extensionPath, "dist/sdk/node-cjs/index.js"
+  ));
+  const compiler = new D2();
+  const render = async (name, options) => {
+    const expected = await compiler.renderSVG(source, options);
+    const html = await commands.executeCommand("markdown.api.render", markdown);
+    assert(html.includes(expected), name + " SVG preview");
   };
-  await render("diagram-defaults", []);
   try {
+    await render("diagram-defaults", {});
+    const folder = Uri.joinPath(workspace.workspaceFolders[0].uri, "notes");
+    await workspace.fs.createDirectory(folder);
+    await openFile("notes/library.d2", "api: Markdown relative import\n");
+    const note = await openFile("notes/guide.md", "```d2\n...@library\n```");
+    const html = await commands.executeCommand("markdown.api.render", note);
+    assert.match(html, /Markdown relative import/);
     await config.update("previewLayout", "dagre", vscode.ConfigurationTarget.Workspace);
     await config.update("previewTheme", "default", vscode.ConfigurationTarget.Workspace);
     await config.update("previewSketch", false, vscode.ConfigurationTarget.Workspace);
-    await render("editor-overrides", ["--layout=dagre", "--theme=0", "--sketch=false"]);
+    await render("editor-overrides", { layout: "dagre", themeID: 0, sketch: false });
   } finally {
+    await compiler.dispose();
     for (const key of ["previewLayout", "previewTheme", "previewSketch"]) {
       await config.update(key, undefined, vscode.ConfigurationTarget.Workspace);
     }
@@ -189,7 +205,7 @@ exports.run = async () => {
   await eventually("cleared D2 diagnostics", () => d2Errors().length === 0);
   const windowsFile = await openFile("windows.d2", "x\r\n");
   await checkFormat(windowsFile);
-  // The native server declines formatting above 2 MiB of UTF-8 text.
+  // The language server declines formatting above 2 MiB. D2.js formats it instead.
   const large = await openFile("large.d2", "");
   await checkFormat(large, "# " + "é".repeat(1024 * 1024) + "\n");
 
@@ -210,11 +226,11 @@ exports.run = async () => {
 
   await config.update(
     "execPath",
-    process.env.D2_LSP_BIN,
+    undefined,
     vscode.ConfigurationTarget.Global,
   );
   await eventually("native providers to restart", async () => (await symbols())?.length);
   console.log(
-    "D2 native features, CLI fallback, Markdown formatting and configuration restart passed.",
+    "Bundled D2 language features, D2.js formatting, Markdown, and configuration restart passed.",
   );
 };
